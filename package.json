@@ -34,7 +34,7 @@
     "dev": "vite",
     "dev:web": "BUILD_TARGET=web vite",
     "build": "tsc --noEmit && vite build",
-    "build:web": "tsc --noEmit && BUILD_TARGET=web vite build",
+    "build:web": "tsc --noEmit && BUILD_TARGET=web vite build && BUILD_TARGET=local DOWNLOAD_COPY=1 vite build",
     "build:all": "npm run build && npm run build:web",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",

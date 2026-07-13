@@ -29,7 +29,8 @@ Initial public release. Everything below describes the app as it ships at 1.0.0.
 - **Two builds from one source** - a downloadable single-file `CRTL.html` (full
   features, runs offline from `file://`) and a hosted web build for devices that
   can't open local files (iPhone / iPad). The active build and version number
-  are shown in Help.
+  are shown in Help, and the hosted build offers a one-click download of the
+  offline single-file version (gear -> Download offline version).
 - **Web-build Home / Away** - a hosted `https` page can't probe an `http` LAN
   (mixed content), so the web build uses a manual Home/Away toggle and shows
   health dots only for `https` targets. Adding one `https`-reachable "beacon" to
