@@ -11,6 +11,13 @@ const pkg = JSON.parse(readFileSync(new URL('./package.json', import.meta.url), 
 const BUILD_TARGET = process.env.BUILD_TARGET === 'web' ? 'web' : 'local';
 const isWeb = BUILD_TARGET === 'web';
 
+// The web build also ships the offline single-file for download. A second pass
+// (BUILD_TARGET=local DOWNLOAD_COPY=1) emits the local build into
+// dist-web/download/CRTL.html, next to the hosted dist-web/index.html, so the
+// deployed site can offer it. See package.json `build:web`.
+const DOWNLOAD_COPY = process.env.DOWNLOAD_COPY === '1';
+const outDir = DOWNLOAD_COPY ? 'dist-web/download' : (isWeb ? 'dist-web' : 'dist');
+
 // Local build ships as CRTL.html; the hosted build keeps index.html (what a
 // static host serves by default). Runs post so it's after singleFile.
 function nameOutput(): Plugin {
@@ -35,7 +42,7 @@ export default defineConfig({
 	},
 	plugins: [viteSingleFile(), nameOutput()],
 	build: {
-		outDir: isWeb ? 'dist-web' : 'dist', // build output (git-ignored)
+		outDir,                   // build output (git-ignored)
 		emptyOutDir: true,        // wipe the target dir each build
 		assetsInlineLimit: 100_000_000, // force fonts/assets to inline as base64
 		cssCodeSplit: false,

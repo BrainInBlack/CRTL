@@ -6,6 +6,7 @@ import '@fontsource/orbitron/latin-700.css';
 
 import { currentState, manualOverride, editMode, openWrap, saveLocal, rerender } from './state';
 import { biUri, embedAllIcons } from './icons';
+import { IS_WEB } from './build';
 import { closeSlideout, runServiceProbes } from './render';
 import { setEditMode } from './edit';
 import { openOptionsModal, openHelpModal, closeModal } from './modals';
@@ -28,6 +29,36 @@ gear.addEventListener('click', (e) => { e.stopPropagation(); gearMenu.classList.
 document.getElementById('toggle-edit')!.addEventListener('click', () => setEditMode(!editMode));
 document.getElementById('open-options')!.addEventListener('click', () => { gearMenu.classList.remove('open'); openOptionsModal(); });
 document.getElementById('help')!.addEventListener('click', openHelpModal);
+
+// Hosted build only: offer a download of the offline single-file version, which
+// is deployed alongside the app at download/CRTL.html (see vite.config.ts).
+if (IS_WEB) {
+	const dl = document.createElement('div');
+	dl.className = 'gear-item';
+	dl.id = 'download-offline';
+	const label = document.createElement('span'); label.textContent = 'Download offline version';
+	const icon = document.createElement('span'); icon.className = 'svgicon';
+	icon.style.setProperty('--icon', `url("${biUri('download')}")`);
+	dl.append(label, icon);
+	dl.addEventListener('click', () => { gearMenu.classList.remove('open'); downloadOfflineCopy(); });
+	gearMenu.appendChild(dl);
+}
+
+// Fetch the single-file build and trigger a save (via a blob URL, so the browser
+// downloads it instead of navigating to and rendering the HTML).
+async function downloadOfflineCopy(): Promise<void> {
+	try {
+		const res = await fetch('download/CRTL.html');
+		if (!res.ok) throw new Error(String(res.status));
+		const url = URL.createObjectURL(await res.blob());
+		const a = document.createElement('a');
+		a.href = url; a.download = 'CRTL.html';
+		document.body.appendChild(a); a.click(); a.remove();
+		URL.revokeObjectURL(url);
+	} catch {
+		alert('Could not download the offline version. Please try again.');
+	}
+}
 
 /* ---- dark mode ----
    Device-local (not synced): light unless explicitly toggled to dark. The class

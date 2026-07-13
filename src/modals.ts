@@ -368,6 +368,10 @@ export function openHelpModal(): void {
 			<h4>Home / Away here</h4>
 			<p>An <code>https</code> page can't probe your <code>http</code> LAN, so auto-detect is off - the pill is a manual toggle. Tap to switch; dots show only for <code>https</code> services.</p>
 			<p>Add an <code>https</code> <a href="${REPO_URL}#home-and-away-on-the-hosted-version" target="_blank" rel="noopener noreferrer">beacon</a> to your Home probes to restore auto-detect.</p>
+		</div>
+		<div class="help-section">
+			<h4>Offline version</h4>
+			<p>Want full auto Home / Away and health dots? Open the <b>gear</b> and choose <b>Download offline version</b> - a single self-contained file that runs from <code>file://</code>.</p>
 		</div>` : '';
 
 	body.innerHTML = `
