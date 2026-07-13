@@ -58,6 +58,8 @@ pnpm-debug.log*
 
 # --- Personal data - kept out of the public repo -------------
 private/
+# Deploy script - holds server/target details, never shipped.
+/scripts/deploy.sh
 
 # --- AI assistant tooling ------------------------------------
 # Claude Code - no AI artifacts tracked at all
