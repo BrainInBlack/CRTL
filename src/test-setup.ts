@@ -10,15 +10,15 @@
       getter - and its warning - is never triggered. */
 
 document.body.innerHTML = `
-	<div id="location-pill"><span id="location-text"></span></div>
+  <div id="location-pill"><span id="location-text"></span></div>
 `;
 
 const store = new Map<string, string>();
 (globalThis as unknown as { localStorage: Storage }).localStorage = {
-	get length() { return store.size; },
-	clear: () => store.clear(),
-	getItem: (k: string) => (store.has(k) ? store.get(k)! : null),
-	key: (i: number) => [...store.keys()][i] ?? null,
-	removeItem: (k: string) => { store.delete(k); },
-	setItem: (k: string, v: string) => { store.set(k, String(v)); },
+  get length() { return store.size; },
+  clear: () => store.clear(),
+  getItem: (k: string) => (store.has(k) ? store.get(k)! : null),
+  key: (i: number) => [...store.keys()][i] ?? null,
+  removeItem: (k: string) => { store.delete(k); },
+  setItem: (k: string, v: string) => { store.set(k, String(v)); },
 };

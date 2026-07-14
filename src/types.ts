@@ -2,37 +2,37 @@
 
 /** One clickable link on an entry. */
 export interface Link {
-	label: string;
-	url: string;
+  label: string;
+  url: string;
 }
 
 /** A service row: icon, name, optional health check, and its links. */
 export interface Entry {
-	name: string;
-	icon: string;
-	check: boolean;
-	links: Link[];
+  name: string;
+  icon: string;
+  check: boolean;
+  links: Link[];
 }
 
 /** A named group of entries. */
 export interface Group {
-	group: string;
-	entries: Entry[];
+  group: string;
+  entries: Entry[];
 }
 
 /** The whole persisted config (localStorage +, when synced, the gist). */
 export interface Config {
-	version: number;
-	homeProbes: string[];
-	groups: Group[];
-	iconCache: Record<string, string>;
+  version: number;
+  homeProbes: string[];
+  groups: Group[];
+  iconCache: Record<string, string>;
 }
 
 /** Gist-sync credentials, stored locally in the clear. */
 export interface SyncCreds {
-	pat: string;
-	gistId: string;
-	key: string;
+  pat: string;
+  gistId: string;
+  key: string;
 }
 
 /** Detected (or manually locked) location. */
@@ -42,20 +42,20 @@ export type LocationState = 'home' | 'away';
 
 /** Captured geometry for a FLIP animation. */
 export interface Rect {
-	left: number;
-	top: number;
-	height: number;
+  left: number;
+  top: number;
+  height: number;
 }
 
 /** A drop target: its container and the reorderable items inside it. */
 export interface DragZone {
-	container: HTMLElement;
-	items: HTMLElement[];
+  container: HTMLElement;
+  items: HTMLElement[];
 }
 
 /** Behavior for a single drag interaction. */
 export interface DragOptions {
-	resolve: (items: HTMLElement[], e: PointerEvent) => HTMLElement | null;
-	getZones: () => DragZone[];
-	onCommit: (item: HTMLElement, placeholder: HTMLElement) => void;
+  resolve: (items: HTMLElement[], e: PointerEvent) => HTMLElement | null;
+  getZones: () => DragZone[];
+  onCommit: (item: HTMLElement, placeholder: HTMLElement) => void;
 }

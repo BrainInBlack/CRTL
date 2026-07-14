@@ -30,7 +30,7 @@ const BRAND_SETS = ['simple-icons', 'cbi'];
 
 /** Canonical bootstrap cache/bundle key for any bi form or bare name. */
 export const biKey = (icon: string): string =>
-	icon.startsWith('bi:') ? icon : 'bi:' + (icon.startsWith('bi-') ? icon.slice(3) : icon);
+  icon.startsWith('bi:') ? icon : 'bi:' + (icon.startsWith('bi-') ? icon.slice(3) : icon);
 
 const biCdnUrl  = (name: string) => `${BI_CDN}/${name}.svg`;
 const brandUrl  = (set: string, name: string, host = ICONIFY_HOSTS[0]) => `${host}/${set}/${name}.svg`;
@@ -38,74 +38,74 @@ const brandUrl  = (set: string, name: string, host = ICONIFY_HOSTS[0]) => `${hos
 /** GET an Iconify brand SVG across the redundant hosts; null if none serve it.
    `credentials: 'omit'` keeps wildcard-CORS responses valid even through a redirect. */
 async function iconifyFetch(set: string, name: string, signal?: AbortSignal): Promise<Response | null> {
-	for (const host of ICONIFY_HOSTS) {
-		try {
-			const res = await fetch(brandUrl(set, name, host), { cache: 'no-store', credentials: 'omit', signal });
-			if (res.ok) return res;
-		} catch (e) {
-			if (isAbort(e)) throw e; // a cancelled import shouldn't fall through
-		}
-	}
-	return null;
+  for (const host of ICONIFY_HOSTS) {
+    try {
+      const res = await fetch(brandUrl(set, name, host), { cache: 'no-store', credentials: 'omit', signal });
+      if (res.ok) return res;
+    } catch (e) {
+      if (isAbort(e)) throw e; // a cancelled import shouldn't fall through
+    }
+  }
+  return null;
 }
 
 /** Parse svg:<name> (try all brand sets) or svg:<set>/<name> (that set only). */
 export function parseSvgRef(icon: string): { sets: string[]; name: string } {
-	const ref = icon.slice(4);
-	const i = ref.indexOf('/');
-	return i > 0 ? { sets: [ref.slice(0, i)], name: ref.slice(i + 1) } : { sets: BRAND_SETS, name: ref };
+  const ref = icon.slice(4);
+  const i = ref.indexOf('/');
+  return i > 0 ? { sets: [ref.slice(0, i)], name: ref.slice(i + 1) } : { sets: BRAND_SETS, name: ref };
 }
 
 /** Resolve an icon string to a mask URL (bundled -> cache -> CDN best-guess). */
 function iconUri(icon: string): string {
-	if (!icon) return BUNDLED_ICONS['bi:question-circle'];
-	if (icon.startsWith('data:')) return icon;
-	if (icon.startsWith('svg:')) {
-		if (CONFIG.iconCache[icon]) return CONFIG.iconCache[icon];
-		const { sets, name } = parseSvgRef(icon);
-		return brandUrl(sets[0], name); // best-guess for preview; embed resolves the real set
-	}
-	const key = biKey(icon);
-	return BUNDLED_ICONS[key] || CONFIG.iconCache[key] || biCdnUrl(key.slice(3));
+  if (!icon) return BUNDLED_ICONS['bi:question-circle'];
+  if (icon.startsWith('data:')) return icon;
+  if (icon.startsWith('svg:')) {
+    if (CONFIG.iconCache[icon]) return CONFIG.iconCache[icon];
+    const { sets, name } = parseSvgRef(icon);
+    return brandUrl(sets[0], name); // best-guess for preview; embed resolves the real set
+  }
+  const key = biKey(icon);
+  return BUNDLED_ICONS[key] || CONFIG.iconCache[key] || biCdnUrl(key.slice(3));
 }
 
 /** Fetch the SVG text from the first brand set that has the name. */
 async function fetchBrandSvg(icon: string, signal?: AbortSignal): Promise<string> {
-	const { sets, name } = parseSvgRef(icon);
-	for (const s of sets) {
-		const res = await iconifyFetch(s, name, signal); // tries each host
-		if (!res) continue;
-		const svg = await res.text();
-		if (svg.includes('<svg')) return svg;
-	}
-	throw new Error('Brand icon not found: ' + name);
+  const { sets, name } = parseSvgRef(icon);
+  for (const s of sets) {
+    const res = await iconifyFetch(s, name, signal); // tries each host
+    if (!res) continue;
+    const svg = await res.text();
+    if (svg.includes('<svg')) return svg;
+  }
+  throw new Error('Brand icon not found: ' + name);
 }
 
 /** Which brand sets contain `name` (all polled in parallel) - for the chooser. */
 export async function findBrandSets(name: string): Promise<string[]> {
-	const hits = await Promise.all(BRAND_SETS.map(async (s) => {
-		try { return (await iconifyFetch(s, name)) ? s : null; } catch { return null; }
-	}));
-	return hits.filter((s): s is string => s !== null);
+  const hits = await Promise.all(BRAND_SETS.map(async (s) => {
+    try { return (await iconifyFetch(s, name)) ? s : null; } catch { return null; }
+  }));
+  return hits.filter((s): s is string => s !== null);
 }
 
 /** Bare mask <span> for any icon string. */
 export function iconEl(icon: string): HTMLSpanElement {
-	const el = document.createElement('span');
-	el.className = 'svgicon';
-	// Escape the CSS-string terminators (" and \) so a hand-crafted data: icon
-	// can't break out of url("...") into the --icon custom property. Normal
-	// bundled/CDN/encodeURIComponent'd URIs contain neither, so this is a no-op.
-	const uri = iconUri(icon).replace(/["\\]/g, c => (c === '"' ? '%22' : '%5C'));
-	el.style.setProperty('--icon', `url("${uri}")`);
-	return el;
+  const el = document.createElement('span');
+  el.className = 'svgicon';
+  // Escape the CSS-string terminators (" and \) so a hand-crafted data: icon
+  // can't break out of url("...") into the --icon custom property. Normal
+  // bundled/CDN/encodeURIComponent'd URIs contain neither, so this is a no-op.
+  const uri = iconUri(icon).replace(/["\\]/g, c => (c === '"' ? '%22' : '%5C'));
+  el.style.setProperty('--icon', `url("${uri}")`);
+  return el;
 }
 
 /** Entry icon (adds the row spacing class). */
 export function iconMarkup(icon: string): HTMLSpanElement {
-	const el = iconEl(icon);
-	el.classList.add('entry-icon');
-	return el;
+  const el = iconEl(icon);
+  el.classList.add('entry-icon');
+  return el;
 }
 
 /** Fixed-UI glyph span for a bundled `bi` name (gear, trash, ...). */
@@ -119,34 +119,34 @@ export const biUri = (name: string): string => BUNDLED_ICONS['bi:' + name] || bi
  * bundled bi:, or already-cached. Fetches the SVG once; returns true if added.
  */
 export async function embedIcon(icon: string, signal?: AbortSignal): Promise<boolean> {
-	if (!icon || icon.startsWith('data:')) return false;
-	let key: string, svg: string;
-	if (icon.startsWith('svg:')) {
-		key = icon;
-		if (CONFIG.iconCache[key]) return false;
-		svg = await fetchBrandSvg(icon, signal);    // tries each brand set, validates <svg>
-	} else {
-		key = biKey(icon);
-		if (BUNDLED_ICONS[key] || CONFIG.iconCache[key]) return false;
-		const res = await fetch(biCdnUrl(key.slice(3)), { cache: 'no-store', credentials: 'omit', signal });
-		if (!res.ok) throw new Error('Icon fetch failed: HTTP ' + res.status);
-		svg = await res.text();
-		if (!svg.includes('<svg')) throw new Error('Not an SVG');
-	}
-	// Loose sniff is enough: the SVG is only ever used as a CSS mask URL, never
-	// inserted as DOM HTML, so any embedded script can't execute.
-	CONFIG.iconCache[key] = 'data:image/svg+xml,' + encodeURIComponent(svg);
-	return true;
+  if (!icon || icon.startsWith('data:')) return false;
+  let key: string, svg: string;
+  if (icon.startsWith('svg:')) {
+    key = icon;
+    if (CONFIG.iconCache[key]) return false;
+    svg = await fetchBrandSvg(icon, signal);    // tries each brand set, validates <svg>
+  } else {
+    key = biKey(icon);
+    if (BUNDLED_ICONS[key] || CONFIG.iconCache[key]) return false;
+    const res = await fetch(biCdnUrl(key.slice(3)), { cache: 'no-store', credentials: 'omit', signal });
+    if (!res.ok) throw new Error('Icon fetch failed: HTTP ' + res.status);
+    svg = await res.text();
+    if (!svg.includes('<svg')) throw new Error('Not an SVG');
+  }
+  // Loose sniff is enough: the SVG is only ever used as a CSS mask URL, never
+  // inserted as DOM HTML, so any embedded script can't execute.
+  CONFIG.iconCache[key] = 'data:image/svg+xml,' + encodeURIComponent(svg);
+  return true;
 }
 
 /** All cache keys an entry references (svg: as-is, bi forms canonicalised). */
 function referencedIconKeys(): string[] {
-	const keys: string[] = [];
-	CONFIG.groups.forEach(g => g.entries.forEach(e => {
-		if (!e.icon || e.icon.startsWith('data:')) return;
-		keys.push(e.icon);
-	}));
-	return keys;
+  const keys: string[] = [];
+  CONFIG.groups.forEach(g => g.entries.forEach(e => {
+    if (!e.icon || e.icon.startsWith('data:')) return;
+    keys.push(e.icon);
+  }));
+  return keys;
 }
 
 /**
@@ -160,30 +160,30 @@ function referencedIconKeys(): string[] {
  * Returns the number of icons actually embedded.
  */
 export async function embedAllIcons(onProgress?: (done: number, total: number) => void, signal?: AbortSignal): Promise<number> {
-	const missing = referencedIconKeys().filter(icon => {
-		if (icon.startsWith('svg:')) return !CONFIG.iconCache[icon];
-		const key = biKey(icon);
-		return !BUNDLED_ICONS[key] && !CONFIG.iconCache[key];
-	});
-	const total = missing.length;
-	if (onProgress) onProgress(0, total);
-	let done = 0, added = 0;
-	for (const icon of missing) {
-		if (signal && signal.aborted) break;
-		try { if (await embedIcon(icon, signal)) added++; }
-		catch (e) { if (isAbort(e)) break; /* else tolerate; render falls back to CDN */ }
-		done++;
-		if (onProgress) onProgress(done, total);
-	}
-	return added;
+  const missing = referencedIconKeys().filter(icon => {
+    if (icon.startsWith('svg:')) return !CONFIG.iconCache[icon];
+    const key = biKey(icon);
+    return !BUNDLED_ICONS[key] && !CONFIG.iconCache[key];
+  });
+  const total = missing.length;
+  if (onProgress) onProgress(0, total);
+  let done = 0, added = 0;
+  for (const icon of missing) {
+    if (signal && signal.aborted) break;
+    try { if (await embedIcon(icon, signal)) added++; }
+    catch (e) { if (isAbort(e)) break; /* else tolerate; render falls back to CDN */ }
+    done++;
+    if (onProgress) onProgress(done, total);
+  }
+  return added;
 }
 
 /** Drop cache entries no entry references any more. */
 export function pruneIconCache(): void {
-	const used = new Set<string>();
-	CONFIG.groups.forEach(g => g.entries.forEach(e => {
-		if (!e.icon || e.icon.startsWith('data:')) return;
-		used.add(e.icon.startsWith('svg:') ? e.icon : biKey(e.icon));
-	}));
-	Object.keys(CONFIG.iconCache).forEach(k => { if (!used.has(k)) delete CONFIG.iconCache[k]; });
+  const used = new Set<string>();
+  CONFIG.groups.forEach(g => g.entries.forEach(e => {
+    if (!e.icon || e.icon.startsWith('data:')) return;
+    used.add(e.icon.startsWith('svg:') ? e.icon : biKey(e.icon));
+  }));
+  Object.keys(CONFIG.iconCache).forEach(k => { if (!used.has(k)) delete CONFIG.iconCache[k]; });
 }

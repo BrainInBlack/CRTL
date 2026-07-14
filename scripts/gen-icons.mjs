@@ -16,18 +16,18 @@ const names = [...new Set([...BI_ICONS, ...CHROME_ICONS])].sort();
 // encodeURIComponent raw) and restore chars that are safe inside a quoted
 // CSS url(). Roughly a third smaller than a plain encodeURIComponent.
 function dataUri(svg) {
-	const enc = encodeURIComponent(svg.replace(/"/g, "'"))
-		.replace(/%20/g, ' ').replace(/%2F/g, '/').replace(/%3D/g, '=')
-		.replace(/%3A/g, ':').replace(/%2C/g, ',');
-	return 'data:image/svg+xml,' + enc;
+  const enc = encodeURIComponent(svg.replace(/"/g, "'"))
+    .replace(/%20/g, ' ').replace(/%2F/g, '/').replace(/%3D/g, '=')
+    .replace(/%3A/g, ':').replace(/%2C/g, ',');
+  return 'data:image/svg+xml,' + enc;
 }
 
 const entries = names.map(name => {
-	let svg = readFileSync(resolve(iconDir, `${name}.svg`), 'utf8');
-	// Drop the source class attr and collapse whitespace; the mask ignores fill,
-	// but viewBox + paths are what we need.
-	svg = svg.replace(/\sclass="[^"]*"/, '').replace(/\s*\n\s*/g, '').trim();
-	return `\t'bi:${name}': "${dataUri(svg)}"`;
+  let svg = readFileSync(resolve(iconDir, `${name}.svg`), 'utf8');
+  // Drop the source class attr and collapse whitespace; the mask ignores fill,
+  // but viewBox + paths are what we need.
+  svg = svg.replace(/\sclass="[^"]*"/, '').replace(/\s*\n\s*/g, '').trim();
+  return `  'bi:${name}': "${dataUri(svg)}"`;
 });
 
 const out =

@@ -21,36 +21,36 @@ const outDir = DOWNLOAD_COPY ? 'dist-web/download' : (isWeb ? 'dist-web' : 'dist
 // Local build ships as CRTL.html; the hosted build keeps index.html (what a
 // static host serves by default). Runs post so it's after singleFile.
 function nameOutput(): Plugin {
-	return {
-		name: 'name-output',
-		enforce: 'post',
-		generateBundle(_opts, bundle) {
-			if (isWeb) return; // hosted build stays index.html
-			const html = bundle['index.html'];
-			if (html) { html.fileName = 'CRTL.html'; }
-		}
-	};
+  return {
+    name: 'name-output',
+    enforce: 'post',
+    generateBundle(_opts, bundle) {
+      if (isWeb) return; // hosted build stays index.html
+      const html = bundle['index.html'];
+      if (html) { html.fileName = 'CRTL.html'; }
+    }
+  };
 }
 
 // CRTL ships as one self-contained HTML file. Source is modular under src/;
 // `vite build` inlines all JS/CSS/fonts. Local -> dist/CRTL.html, web ->
 // dist-web/index.html. Dev runs a live-reloading preview off index.html.
 export default defineConfig({
-	define: {
-		__APP_VERSION__: JSON.stringify(pkg.version),
-		__BUILD_TARGET__: JSON.stringify(BUILD_TARGET)
-	},
-	plugins: [viteSingleFile(), nameOutput()],
-	build: {
-		outDir,                   // build output (git-ignored)
-		emptyOutDir: true,        // wipe the target dir each build
-		assetsInlineLimit: 100_000_000, // force fonts/assets to inline as base64
-		cssCodeSplit: false,
-		chunkSizeWarningLimit: 4096
-	},
-	server: {
-		port: 5173,
-		strictPort: true,
-		open: '/index.html'
-	}
+  define: {
+    __APP_VERSION__: JSON.stringify(pkg.version),
+    __BUILD_TARGET__: JSON.stringify(BUILD_TARGET)
+  },
+  plugins: [viteSingleFile(), nameOutput()],
+  build: {
+    outDir,                   // build output (git-ignored)
+    emptyOutDir: true,        // wipe the target dir each build
+    assetsInlineLimit: 100_000_000, // force fonts/assets to inline as base64
+    cssCodeSplit: false,
+    chunkSizeWarningLimit: 4096
+  },
+  server: {
+    port: 5173,
+    strictPort: true,
+    open: '/index.html'
+  }
 });
