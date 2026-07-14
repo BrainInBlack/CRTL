@@ -5,16 +5,13 @@ charset = utf-8
 end_of_line = lf
 insert_final_newline = true
 trim_trailing_whitespace = true
-# CRTL's source is tab-indented - keep it that way.
-indent_style = tab
+indent_style = space
+indent_size = 2
 
+# Markdown: trailing whitespace can be meaningful (hard line breaks).
 [*.md]
 trim_trailing_whitespace = false
 
-[*.{yml,yaml}]
-indent_style = space
-indent_size = 2
-
-[*.json]
-indent_style = space
-indent_size = 2
+# Makefiles require real tabs.
+[Makefile]
+indent_style = tab

@@ -21,7 +21,7 @@ const SYNC_REFRESH_MS     = 60000; // re-pull the gist
 
 // Fill the static chrome glyphs (gear, help, sliders) from the bundled set.
 document.querySelectorAll<HTMLElement>('[data-bi]').forEach(el =>
-	el.style.setProperty('--icon', `url("${biUri(el.dataset.bi!)}")`));
+  el.style.setProperty('--icon', `url("${biUri(el.dataset.bi!)}")`));
 
 /* ---- gear menu ---- */
 
@@ -36,31 +36,31 @@ document.getElementById('help')!.addEventListener('click', openHelpModal);
 // Hosted build only: offer a download of the offline single-file version, which
 // is deployed alongside the app at download/CRTL.html (see vite.config.ts).
 if (IS_WEB) {
-	const dl = document.createElement('div');
-	dl.className = 'gear-item';
-	dl.id = 'download-offline';
-	const label = document.createElement('span'); label.textContent = 'Download offline version';
-	const icon = document.createElement('span'); icon.className = 'svgicon';
-	icon.style.setProperty('--icon', `url("${biUri('download')}")`);
-	dl.append(label, icon);
-	dl.addEventListener('click', () => { gearMenu.classList.remove('open'); downloadOfflineCopy(); });
-	gearMenu.appendChild(dl);
+  const dl = document.createElement('div');
+  dl.className = 'gear-item';
+  dl.id = 'download-offline';
+  const label = document.createElement('span'); label.textContent = 'Download offline version';
+  const icon = document.createElement('span'); icon.className = 'svgicon';
+  icon.style.setProperty('--icon', `url("${biUri('download')}")`);
+  dl.append(label, icon);
+  dl.addEventListener('click', () => { gearMenu.classList.remove('open'); downloadOfflineCopy(); });
+  gearMenu.appendChild(dl);
 }
 
 // Fetch the single-file build and trigger a save (via a blob URL, so the browser
 // downloads it instead of navigating to and rendering the HTML).
 async function downloadOfflineCopy(): Promise<void> {
-	try {
-		const res = await fetch('download/CRTL.html');
-		if (!res.ok) throw new Error(String(res.status));
-		const url = URL.createObjectURL(await res.blob());
-		const a = document.createElement('a');
-		a.href = url; a.download = 'CRTL.html';
-		document.body.appendChild(a); a.click(); a.remove();
-		URL.revokeObjectURL(url);
-	} catch {
-		alert('Could not download the offline version. Please try again.');
-	}
+  try {
+    const res = await fetch('download/CRTL.html');
+    if (!res.ok) throw new Error(String(res.status));
+    const url = URL.createObjectURL(await res.blob());
+    const a = document.createElement('a');
+    a.href = url; a.download = 'CRTL.html';
+    document.body.appendChild(a); a.click(); a.remove();
+    URL.revokeObjectURL(url);
+  } catch {
+    alert('Could not download the offline version. Please try again.');
+  }
 }
 
 /* ---- dark mode ----
@@ -71,39 +71,39 @@ const THEME_KEY  = 'crtl-theme';
 const darkToggle = document.getElementById('toggle-dark')!;
 
 function applyTheme(dark: boolean): void {
-	document.documentElement.classList.toggle('dark', dark);
-	darkToggle.title = dark ? 'Light mode' : 'Dark mode';
-	darkToggle.querySelector<HTMLElement>('.svgicon')!
-		.style.setProperty('--icon', `url("${biUri(dark ? 'sun-fill' : 'moon-fill')}")`);
+  document.documentElement.classList.toggle('dark', dark);
+  darkToggle.title = dark ? 'Light mode' : 'Dark mode';
+  darkToggle.querySelector<HTMLElement>('.svgicon')!
+    .style.setProperty('--icon', `url("${biUri(dark ? 'sun-fill' : 'moon-fill')}")`);
 }
 applyTheme(document.documentElement.classList.contains('dark'));
 
 darkToggle.addEventListener('click', () => {
-	const dark = !document.documentElement.classList.contains('dark');
-	try { localStorage.setItem(THEME_KEY, dark ? 'dark' : 'light'); } catch {}
-	applyTheme(dark);
+  const dark = !document.documentElement.classList.contains('dark');
+  try { localStorage.setItem(THEME_KEY, dark ? 'dark' : 'light'); } catch {}
+  applyTheme(dark);
 });
 
 // Tint the gear when sync is failing (errors are otherwise easy to miss).
 function refreshSyncIndicator(): void {
-	const err = getSync() ? getSyncError() : null;
-	gear.classList.toggle('sync-error', !!err);
-	gear.title = err ? 'Sync error: ' + err : 'Settings';
+  const err = getSync() ? getSyncError() : null;
+  gear.classList.toggle('sync-error', !!err);
+  gear.title = err ? 'Sync error: ' + err : 'Settings';
 }
 window.addEventListener('sync-status', refreshSyncIndicator);
 
 /* ---- global dismissal: outside-click + Escape ---- */
 
 document.addEventListener('click', (e) => {
-	if (!gear.contains(e.target as Node) && !gearMenu.contains(e.target as Node)) gearMenu.classList.remove('open');
-	if (openWrap && !openWrap.contains(e.target as Node)) closeSlideout();
+  if (!gear.contains(e.target as Node) && !gearMenu.contains(e.target as Node)) gearMenu.classList.remove('open');
+  if (openWrap && !openWrap.contains(e.target as Node)) closeSlideout();
 });
 document.addEventListener('keydown', (e) => {
-	if (e.key !== 'Escape') return;
-	const m = document.querySelector<HTMLElement>('.modal-backdrop.open');
-	if (m) closeModal(m);
-	gearMenu.classList.remove('open');
-	closeSlideout();
+  if (e.key !== 'Escape') return;
+  const m = document.querySelector<HTMLElement>('.modal-backdrop.open');
+  if (m) closeModal(m);
+  gearMenu.classList.remove('open');
+  closeSlideout();
 });
 
 /* ---- startup ---- */
@@ -115,8 +115,8 @@ recheckLocation();
 // First run on a machine with sync configured: force-import the gist (with a
 // progress bar, editing locked) before allowing any write. Otherwise just pull.
 function pullGist({ silent = false }: { silent?: boolean } = {}): void {
-	if (getSync() && !isSyncReady()) importFromGist({ silent }).catch(() => {});
-	else syncFromGist();
+  if (getSync() && !isSyncReady()) importFromGist({ silent }).catch(() => {});
+  else syncFromGist();
 }
 pullGist();
 
@@ -131,7 +131,7 @@ embedAllIcons().then(added => { if (added) { saveLocal(); rerender(); } }).catch
 // cadence but staggered 5s later; the gist re-pulls on its own slower 60s clock.
 // Import retries here are silent (no overlay) so a flaky network doesn't flash.
 setInterval(() => {
-	if (!manualOverride && canAutoDetect()) probeHome().then(d => { if (d !== currentState) setState(d); });
+  if (!manualOverride && canAutoDetect()) probeHome().then(d => { if (d !== currentState) setState(d); });
 }, LOCATION_REFRESH_MS);
 
 setTimeout(() => setInterval(runServiceProbes, SERVICE_REFRESH_MS), SERVICE_OFFSET_MS);

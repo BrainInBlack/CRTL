@@ -6,23 +6,23 @@
    migrated. See the `crtl-storage-keys` project memory. */
 
 const KEY_MAP: Record<string, string> = {
-	'startpage-config':     'crtl-config',
-	'startpage-location':   'crtl-location',
-	'startpage-manual':     'crtl-manual',
-	'startpage-theme':      'crtl-theme',
-	'startpage-sync':       'crtl-sync',
-	'startpage-sync-ready': 'crtl-sync-ready',
-	'startpage-sync-base':  'crtl-sync-base',
+  'startpage-config':     'crtl-config',
+  'startpage-location':   'crtl-location',
+  'startpage-manual':     'crtl-manual',
+  'startpage-theme':      'crtl-theme',
+  'startpage-sync':       'crtl-sync',
+  'startpage-sync-ready': 'crtl-sync-ready',
+  'startpage-sync-base':  'crtl-sync-base',
 };
 
 export function migrateStorage(): void {
-	try {
-		for (const [oldKey, newKey] of Object.entries(KEY_MAP)) {
-			const val = localStorage.getItem(oldKey);
-			if (val === null) continue;
-			// Don't clobber a value already written under the new key.
-			if (localStorage.getItem(newKey) === null) localStorage.setItem(newKey, val);
-			localStorage.removeItem(oldKey);
-		}
-	} catch { /* private mode / no storage - nothing to migrate */ }
+  try {
+    for (const [oldKey, newKey] of Object.entries(KEY_MAP)) {
+      const val = localStorage.getItem(oldKey);
+      if (val === null) continue;
+      // Don't clobber a value already written under the new key.
+      if (localStorage.getItem(newKey) === null) localStorage.setItem(newKey, val);
+      localStorage.removeItem(oldKey);
+    }
+  } catch { /* private mode / no storage - nothing to migrate */ }
 }

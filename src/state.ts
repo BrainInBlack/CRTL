@@ -17,10 +17,10 @@ export const STORAGE_KEY = 'crtl-location';
 const MANUAL_KEY = 'crtl-manual'; // sticky manual Home/Away override
 
 const clone = <T>(x: T): T =>
-	typeof structuredClone === 'function' ? structuredClone(x) : JSON.parse(JSON.stringify(x));
+  typeof structuredClone === 'function' ? structuredClone(x) : JSON.parse(JSON.stringify(x));
 
 function defaultConfig(): Config {
-	return { version: Date.now(), homeProbes: clone(DEFAULT_HOME_PROBES), groups: clone(DEFAULT_GROUPS), iconCache: {} };
+  return { version: Date.now(), homeProbes: clone(DEFAULT_HOME_PROBES), groups: clone(DEFAULT_GROUPS), iconCache: {} };
 }
 
 /** Coerce an untrusted config (localStorage or gist) into a valid shape so a
@@ -28,21 +28,21 @@ function defaultConfig(): Config {
    with a thrown `.forEach`. Only top-level fields are checked; deeper record
    fields are guarded at their use sites. */
 function normalizeConfig(raw: Partial<Config> | null | undefined): Config {
-	const c = raw ?? {};
-	return {
-		version:    typeof c.version === 'number' ? c.version : Date.now(),
-		homeProbes: Array.isArray(c.homeProbes) ? c.homeProbes : clone(DEFAULT_HOME_PROBES),
-		groups:     Array.isArray(c.groups)     ? c.groups     : clone(DEFAULT_GROUPS),
-		iconCache:  c.iconCache && typeof c.iconCache === 'object' ? c.iconCache : {}
-	};
+  const c = raw ?? {};
+  return {
+    version:    typeof c.version === 'number' ? c.version : Date.now(),
+    homeProbes: Array.isArray(c.homeProbes) ? c.homeProbes : clone(DEFAULT_HOME_PROBES),
+    groups:     Array.isArray(c.groups)     ? c.groups     : clone(DEFAULT_GROUPS),
+    iconCache:  c.iconCache && typeof c.iconCache === 'object' ? c.iconCache : {}
+  };
 }
 
 export function loadLocalConfig(): Config {
-	try {
-		const raw = localStorage.getItem(CONFIG_KEY);
-		if (!raw) return defaultConfig();
-		return normalizeConfig(JSON.parse(raw) as Partial<Config>);
-	} catch { return defaultConfig(); }
+  try {
+    const raw = localStorage.getItem(CONFIG_KEY);
+    if (!raw) return defaultConfig();
+    return normalizeConfig(JSON.parse(raw) as Partial<Config>);
+  } catch { return defaultConfig(); }
 }
 
 export let CONFIG: Config = loadLocalConfig();
@@ -59,8 +59,8 @@ export let importing      = false;
 export const setImporting      = (v: boolean) => { importing = v; };
 export const setCurrentState   = (s: LocationState) => { currentState = s; };
 export const setManualOverride = (v: boolean) => {
-	manualOverride = v;
-	try { v ? localStorage.setItem(MANUAL_KEY, '1') : localStorage.removeItem(MANUAL_KEY); } catch {}
+  manualOverride = v;
+  try { v ? localStorage.setItem(MANUAL_KEY, '1') : localStorage.removeItem(MANUAL_KEY); } catch {}
 };
 export const setEditModeFlag   = (v: boolean) => { editMode = v; };
 export const setOpenWrap       = (w: HTMLElement | null) => { openWrap = w; };
@@ -74,36 +74,36 @@ export const rerender = () => render(isAway());
    one push (on leaving edit mode / a deliberate options save) to cut noise. */
 let pendingGistSave = false;
 export function persist({ bumpVersion = true, toGist = true }: { bumpVersion?: boolean; toGist?: boolean } = {}): void {
-	if (bumpVersion) CONFIG.version = Date.now();
-	try { localStorage.setItem(CONFIG_KEY, JSON.stringify(CONFIG)); } catch {}
-	// Only ever write to the gist once this machine has imported it (isSyncReady):
-	// a freshly-set-up machine must not push its local config until the current
-	// gist has been pulled, or it would clobber the real data.
-	if (toGist && getSync() && isSyncReady()) pendingGistSave = true;
+  if (bumpVersion) CONFIG.version = Date.now();
+  try { localStorage.setItem(CONFIG_KEY, JSON.stringify(CONFIG)); } catch {}
+  // Only ever write to the gist once this machine has imported it (isSyncReady):
+  // a freshly-set-up machine must not push its local config until the current
+  // gist has been pulled, or it would clobber the real data.
+  if (toGist && getSync() && isSyncReady()) pendingGistSave = true;
 }
 
 /** Push accumulated edits to the gist as a single revision, if any are pending.
    commitToGist first checks the gist hasn't moved underneath us (conflict). */
 export function flushGist(): void {
-	if (!pendingGistSave) return;
-	pendingGistSave = false;
-	if (getSync() && isSyncReady()) commitToGist().catch(reportSyncError);
+  if (!pendingGistSave) return;
+  pendingGistSave = false;
+  if (getSync() && isSyncReady()) commitToGist().catch(reportSyncError);
 }
 
 /** Write CONFIG to localStorage only (no version bump, no gist). Used to persist
    the icon cache after an adopt/import embeds icons, so they survive a reload
    instead of being re-fetched every time. */
 export function saveLocal(): void {
-	try { localStorage.setItem(CONFIG_KEY, JSON.stringify(CONFIG)); } catch {}
+  try { localStorage.setItem(CONFIG_KEY, JSON.stringify(CONFIG)); } catch {}
 }
 
 /** Replace the whole config (e.g. adopted from the gist) and re-render.
    Icons are never stored in the gist, so the local iconCache is carried over
    (and any gaps are re-fetched + persisted by the import flow). */
 export function applyConfig(next: Config): void {
-	const n = normalizeConfig(next);
-	n.iconCache = { ...n.iconCache, ...(CONFIG.iconCache || {}) };
-	CONFIG = n;
-	saveLocal();
-	rerender();
+  const n = normalizeConfig(next);
+  n.iconCache = { ...n.iconCache, ...(CONFIG.iconCache || {}) };
+  CONFIG = n;
+  saveLocal();
+  rerender();
 }

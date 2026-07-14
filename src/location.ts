@@ -4,8 +4,8 @@
    pulses while probing. */
 
 import {
-	STORAGE_KEY, currentState, manualOverride,
-	setCurrentState, setManualOverride
+  STORAGE_KEY, currentState, manualOverride,
+  setCurrentState, setManualOverride
 } from './state';
 import { render } from './render';
 import { probeHome, canAutoDetect } from './probes';
@@ -21,60 +21,60 @@ const pillText = document.getElementById('location-text')!;
 let lockedFrom: LocationState | null = null;
 
 function updateTitle(): void {
-	const other = currentState === 'home' ? 'Away' : 'Home';
-	// Hosted build without a beacon: no auto-detect, so the pill is a plain toggle.
-	if (!canAutoDetect()) {
-		pill.title = `Manual mode - click to switch to ${other} (auto-detect needs the desktop version or an https beacon; see Help)`;
-		return;
-	}
-	if (!manualOverride) { pill.title = 'Auto-detecting location - click to lock'; return; }
-	const here = currentState === 'home' ? 'Home' : 'Away';
-	pill.title = currentState === lockedFrom
-		? `Locked ${here} - click to switch to ${other}`
-		: `Locked ${here} - click to resume auto-detect`;
+  const other = currentState === 'home' ? 'Away' : 'Home';
+  // Hosted build without a beacon: no auto-detect, so the pill is a plain toggle.
+  if (!canAutoDetect()) {
+    pill.title = `Manual mode - click to switch to ${other} (auto-detect needs the desktop version or an https beacon; see Help)`;
+    return;
+  }
+  if (!manualOverride) { pill.title = 'Auto-detecting location - click to lock'; return; }
+  const here = currentState === 'home' ? 'Home' : 'Away';
+  pill.title = currentState === lockedFrom
+    ? `Locked ${here} - click to switch to ${other}`
+    : `Locked ${here} - click to resume auto-detect`;
 }
 
 export function setState(state: LocationState, { manual = false }: { manual?: boolean } = {}): void {
-	if (lockedFrom === null) lockedFrom = state; // seed from the first (startup) state
-	setCurrentState(state);
-	if (manual) setManualOverride(true);
-	localStorage.setItem(STORAGE_KEY, state);
-	pill.classList.remove('checking', 'away');
-	if (state === 'away') pill.classList.add('away');
-	pill.classList.toggle('locked', manualOverride);
-	pillText.textContent = state === 'away' ? 'Away' : 'Home';
-	updateTitle();
-	render(state === 'away');
+  if (lockedFrom === null) lockedFrom = state; // seed from the first (startup) state
+  setCurrentState(state);
+  if (manual) setManualOverride(true);
+  localStorage.setItem(STORAGE_KEY, state);
+  pill.classList.remove('checking', 'away');
+  if (state === 'away') pill.classList.add('away');
+  pill.classList.toggle('locked', manualOverride);
+  pillText.textContent = state === 'away' ? 'Away' : 'Home';
+  updateTitle();
+  render(state === 'away');
 }
 
 /** Re-probe and switch unless the user has manually locked the state. */
 export function recheckLocation(): void {
-	// Hosted build without a usable probe: nothing to detect against. Sit in
-	// manual mode showing the last-known state; the pill becomes a toggle.
-	if (!canAutoDetect()) { setState(currentState, { manual: true }); return; }
-	pill.classList.add('checking');
-	pill.classList.toggle('locked', manualOverride);
-	updateTitle();
-	probeHome().then(d => {
-		if (!manualOverride) setState(d);
-		else pill.classList.remove('checking');
-	});
+  // Hosted build without a usable probe: nothing to detect against. Sit in
+  // manual mode showing the last-known state; the pill becomes a toggle.
+  if (!canAutoDetect()) { setState(currentState, { manual: true }); return; }
+  pill.classList.add('checking');
+  pill.classList.toggle('locked', manualOverride);
+  updateTitle();
+  probeHome().then(d => {
+    if (!manualOverride) setState(d);
+    else pill.classList.remove('checking');
+  });
 }
 
 // auto -> lock current -> switch to the other -> auto
 pill.addEventListener('click', () => {
-	// Hosted build without a beacon: a plain Home/Away toggle (no auto to resume).
-	if (!canAutoDetect()) {
-		setState(currentState === 'home' ? 'away' : 'home', { manual: true });
-		return;
-	}
-	if (!manualOverride) {
-		lockedFrom = currentState;
-		setState(currentState, { manual: true });               // freeze what's shown
-	} else if (currentState === lockedFrom) {
-		setState(currentState === 'home' ? 'away' : 'home', { manual: true }); // flip
-	} else {
-		setManualOverride(false);
-		recheckLocation();                                      // resume auto-detect
-	}
+  // Hosted build without a beacon: a plain Home/Away toggle (no auto to resume).
+  if (!canAutoDetect()) {
+    setState(currentState === 'home' ? 'away' : 'home', { manual: true });
+    return;
+  }
+  if (!manualOverride) {
+    lockedFrom = currentState;
+    setState(currentState, { manual: true });               // freeze what's shown
+  } else if (currentState === lockedFrom) {
+    setState(currentState === 'home' ? 'away' : 'home', { manual: true }); // flip
+  } else {
+    setManualOverride(false);
+    recheckLocation();                                      // resume auto-detect
+  }
 });

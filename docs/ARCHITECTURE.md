@@ -52,7 +52,7 @@ test files are `src/**/*.test.ts`, focused on the pure / pure-ish modules
 and pointer-heavy code (render, dnd, modals, edit) is verified by hand. There's no
 linter beyond `tsc` - `tsconfig.json` runs `strict`, `noUnusedLocals`, and
 `noUnusedParameters`, so a clean `npm run typecheck` plus passing `npm test` is the
-bar. Source is tab-indented (`.editorconfig`).
+bar. Source is 2-space indented (`.editorconfig`).
 
 ## High-level architecture
 
