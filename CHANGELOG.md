@@ -7,7 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-## [1.0.0] - 2026-07-13
+## [1.0.1] - 2026-07-14
+
+### Changed
+
+- **Split the periodic-check timers.** Home/Away detection and the per-service
+  health probes used to share one 60-second loop and fire together. They now run
+  on separate timers: Home/Away re-detects every 30 seconds, and the service
+  probes run on their own 30-second timer staggered 5 seconds later so the two
+  bursts of network calls don't overlap. The gist re-pull keeps its own
+  60-second clock.
 
 Initial public release. Everything below describes the app as it ships at 1.0.0.
 

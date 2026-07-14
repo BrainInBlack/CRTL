@@ -14,7 +14,10 @@ import { setState, recheckLocation } from './location';
 import { probeHome, canAutoDetect } from './probes';
 import { syncFromGist, importFromGist, isSyncReady, getSync, getSyncError } from './sync';
 
-const SERVICE_REFRESH_MS = 60000; // re-probe + re-detect + re-pull interval
+const LOCATION_REFRESH_MS = 30000; // re-detect Home/Away
+const SERVICE_REFRESH_MS  = 30000; // re-probe service dots
+const SERVICE_OFFSET_MS   = 5000;  // stagger services after the location check
+const SYNC_REFRESH_MS     = 60000; // re-pull the gist
 
 // Fill the static chrome glyphs (gear, help, sliders) from the bundled set.
 document.querySelectorAll<HTMLElement>('[data-bi]').forEach(el =>
@@ -123,10 +126,14 @@ pullGist();
 // exactly once - after this, an icon is only ever fetched if it's truly missing.
 embedAllIcons().then(added => { if (added) { saveLocal(); rerender(); } }).catch(() => {});
 
-// Periodic: re-probe service dots, re-pull the gist, re-detect Home/Away.
+// Periodic checks run on separate timers so the network calls don't all fire at
+// once. Home/Away re-detects every 30s; service dots re-probe on the same
+// cadence but staggered 5s later; the gist re-pulls on its own slower 60s clock.
 // Import retries here are silent (no overlay) so a flaky network doesn't flash.
 setInterval(() => {
-	runServiceProbes();
-	pullGist({ silent: true });
 	if (!manualOverride && canAutoDetect()) probeHome().then(d => { if (d !== currentState) setState(d); });
-}, SERVICE_REFRESH_MS);
+}, LOCATION_REFRESH_MS);
+
+setTimeout(() => setInterval(runServiceProbes, SERVICE_REFRESH_MS), SERVICE_OFFSET_MS);
+
+setInterval(() => pullGist({ silent: true }), SYNC_REFRESH_MS);
