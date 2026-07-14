@@ -4,6 +4,27 @@
 	<meta charset="UTF-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
 	<title>CRTL</title>
+
+	<!-- Social / link-unfurl metadata. og:image is served from GitHub raw so it
+	     resolves regardless of how the hosted build bundles assets. -->
+	<meta name="description" content="Phosphor / CRT-styled homelab dashboard. One self-contained HTML file - fonts and icons baked in, 100% local, works fully offline.">
+	<meta name="theme-color" content="#16110b">
+	<meta property="og:type" content="website">
+	<meta property="og:site_name" content="CRTL">
+	<meta property="og:title" content="CRTL - phosphor / CRT homelab dashboard">
+	<meta property="og:description" content="A self-contained, single-file start page for your self-hosted services. 100% local, works fully offline, with auto Home / Away detection.">
+	<meta property="og:url" content="https://crtl.khemul.de/">
+	<meta property="og:image" content="https://raw.githubusercontent.com/BrainInBlack/CRTL/main/docs/social-preview.png">
+	<meta property="og:image:type" content="image/png">
+	<meta property="og:image:width" content="1280">
+	<meta property="og:image:height" content="640">
+	<meta property="og:image:alt" content="CRTL - a phosphor / CRT-styled homelab dashboard, showing the wordmark and a sample service card.">
+	<meta name="twitter:card" content="summary_large_image">
+	<meta name="twitter:title" content="CRTL - phosphor / CRT homelab dashboard">
+	<meta name="twitter:description" content="A self-contained, single-file start page for your self-hosted services. 100% local, works fully offline, with auto Home / Away detection.">
+	<meta name="twitter:image" content="https://raw.githubusercontent.com/BrainInBlack/CRTL/main/docs/social-preview.png">
+	<meta name="twitter:image:alt" content="CRTL - a phosphor / CRT-styled homelab dashboard, showing the wordmark and a sample service card.">
+
 	<!-- Apply the stored theme before first paint (no light flash). -->
 	<script>try { var t = localStorage.getItem('crtl-theme'); if (t === null) t = localStorage.getItem('startpage-theme'); if (t === 'dark') document.documentElement.classList.add('dark'); } catch (e) {}</script>
 	<!-- Critical background so the pre-stylesheet paint isn't white. Values

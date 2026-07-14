@@ -18,6 +18,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   bursts of network calls don't overlap. The gist re-pull keeps its own
   60-second clock.
 
+## [1.0.0] - 2026-07-13
+
 Initial public release. Everything below describes the app as it ships at 1.0.0.
 
 ### Added
