@@ -778,6 +778,24 @@ body.edit-mode .group-header:active { cursor: grabbing; }
   border-color: var(--accent);
 }
 
+/* Collapsible option sections (gist sync, encrypted backup): the header row
+   stays visible - incl. the sync on/off chip - and its body folds away. */
+.sync-head > label { flex: 1; }
+.collapsible > .sync-head { cursor: pointer; }
+.collapse-caret {
+  display: inline-block;
+  width: 0; height: 0;
+  border-left: 5px solid transparent;
+  border-right: 5px solid transparent;
+  border-top: 6px solid var(--crt-text-medium);
+  flex-shrink: 0;
+  transition: transform 0.15s;
+}
+.collapsible.collapsed .collapse-caret { transform: rotate(-90deg); }
+.collapsible > .sync-head:hover .collapse-caret { border-top-color: var(--crt-text-bright); }
+.collapsible-body { margin-top: 8px; }
+.collapsible.collapsed .collapsible-body { display: none; }
+
 /* Help modal content. */
 .help-section { margin-bottom: 16px; }
 .help-section:last-child { margin-bottom: 0; }

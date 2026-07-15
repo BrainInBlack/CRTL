@@ -64,10 +64,14 @@ function setBase(v: number): void { if (v) localStorage.setItem(BASE_KEY, String
 // Local == gist right now -> record the common version as the new base.
 const markSynced = () => setBase(CONFIG.version);
 
-/** Config payload for the gist: everything except the local icon cache, which
-   bloats the gist and pollutes its revision history. Icons are rebuilt locally
-   from their `bi:`/`svg:` ids after import. */
-const gistPayload = (): Omit<Config, 'iconCache'> => { const { iconCache, ...rest } = CONFIG; return rest; };
+/** A config payload without the local icon cache - the portable shape shared by
+   gist sync and the encrypted backup file. The cache bloats the gist / file and
+   pollutes revision history; icons rebuild locally from their `bi:`/`svg:` ids
+   after import. */
+export const stripIconCache = (c: Config): Omit<Config, 'iconCache'> => { const { iconCache, ...rest } = c; return rest; };
+
+/** The gist payload: this machine's live config, minus the icon cache. */
+const gistPayload = (): Omit<Config, 'iconCache'> => stripIconCache(CONFIG);
 
 /** Base64 blob bundling all three secrets, for moving to a new machine. */
 export function exportSyncBlob(): string {
@@ -207,6 +211,38 @@ export async function createGist(pat: string, keyB64: string): Promise<string> {
   return id;
 }
 
+/* ---- shared adopt ----
+   Every path that replaces CONFIG with an untrusted config (gist adopt, conflict
+   download, gist import, backup import) runs the same sequence: normalize+apply,
+   re-embed icons from their ids, persist, and repaint. Factored here so the lock
+   and the ordering can't drift between call sites. `finalize` is the one knob
+   that differs - markSynced for a gist adopt (local now equals the gist),
+   persist for a backup import (a real edit that bumps the version + marks the
+   gist dirty). */
+interface AdoptOpts {
+  onIconProgress?: (done: number, total: number) => void;
+  signal?: AbortSignal;
+  finalize?: () => void;
+}
+
+/** The adopt core WITHOUT the importing lock - for callers that already hold it
+   (importFromGist owns the lock across its network load, the backup import holds
+   it across decrypt + confirm). */
+export async function applyAndEmbed(next: Config, opts: AdoptOpts = {}): Promise<void> {
+  applyConfig(next);                              // normalize + merge local icon cache
+  await embedAllIcons(opts.onIconProgress, opts.signal);
+  saveLocal();                                    // persist the freshly-fetched icons
+  opts.finalize?.();                              // markSynced (gist) | persist (backup)
+  rerender();                                     // repaint with the now-cached icons
+}
+
+/** applyAndEmbed under the importing write-lock - for callers that don't already
+   hold it (background gist adopt, conflict download). */
+export async function adoptConfig(next: Config, opts: AdoptOpts = {}): Promise<void> {
+  setImporting(true);
+  try { await applyAndEmbed(next, opts); } finally { setImporting(false); }
+}
+
 /** Background pull. Adopts the gist when it's newer; when THIS machine is newer
    (unsynced local edits) it asks the user whether to overwrite the gist or
    discard local. No-ops until this machine has imported the gist. */
@@ -232,16 +268,7 @@ export async function syncFromGist(): Promise<void> {
     // deferred on: that's now a two-way divergence, so re-ask instead of
     // silently clobbering the local changes.
     if (remote.version > CONFIG.version && !deferredConflict) {
-      // Hold the import lock across the adopt: it replaces CONFIG over an
-      // await, and a backup import starting mid-embed would interleave.
-      setImporting(true);
-      try {
-        applyConfig(remote);
-        await embedAllIcons();
-        saveLocal();                              // persist the freshly-fetched icons
-        markSynced();                             // local now equals the gist
-        rerender();                               // repaint with the now-cached icons
-      } finally { setImporting(false); }
+      await adoptConfig(remote, { finalize: markSynced }); // locked: CONFIG replaced over an await
       return;
     }
     await handleConflict(remote);                   // local newer, or a deferred divergence
@@ -293,15 +320,7 @@ async function handleConflict(remote: Config): Promise<void> {
     await saveToGist();
   } else if (act === 'download') {   // discard local, adopt the gist
     deferredConflict = null;
-    // Same lock as the background adopt: CONFIG is replaced over an await.
-    setImporting(true);
-    try {
-      applyConfig(remote);
-      await embedAllIcons();
-      saveLocal();                 // persist the freshly-fetched icons
-      markSynced();                // local now equals the gist
-      rerender();                  // repaint with the now-cached icons
-    } finally { setImporting(false); }
+    await adoptConfig(remote, { finalize: markSynced }); // locked: CONFIG replaced over an await
   } else {                           // Later - remind only if something changes
     deferredConflict = { remoteVer, localVer };
   }
@@ -385,14 +404,14 @@ export async function importFromGist({ silent = false }: { silent?: boolean } = 
     const remote = await loadFromGist(controller.signal);
     if (remote && remote.version) {
       ui && ui.set('Decrypting...', 25);
-      applyConfig(remote);                       // overwrite local with the gist
-      await embedAllIcons((done, total) => {
-        ui && ui.set(total ? `Loading icons (${done}/${total})...` : 'Loading icons...',
-          30 + (total ? Math.round((done / total) * 65) : 65));
-      }, controller.signal);
-      saveLocal();                               // persist the freshly-fetched icons
-      markSynced();                              // local now equals the gist
-      rerender();                                // repaint with the now-cached icons
+      // Already holds the lock (set above), so use the un-locked core.
+      await applyAndEmbed(remote, {
+        onIconProgress: (done, total) =>
+          ui && ui.set(total ? `Loading icons (${done}/${total})...` : 'Loading icons...',
+            30 + (total ? Math.round((done / total) * 65) : 65)),
+        signal: controller.signal,
+        finalize: markSynced                     // local now equals the gist
+      });
     } else {
       // Empty gist: keep local config and seed the gist from it on first save.
       ui && ui.set('No remote config - keeping local', 95);

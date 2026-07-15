@@ -5,7 +5,7 @@
    payload: config without the icon cache (icons re-embed from their bi:/svg:
    ids on import) and never any sync credentials. */
 
-import { encryptStr, decryptStr, b64encode, b64decode } from './sync';
+import { encryptStr, decryptStr, b64encode, b64decode, stripIconCache } from './sync';
 import type { Config } from './types';
 
 const FORMAT = 'crtl-backup';
@@ -50,7 +50,7 @@ export async function exportBackup(config: Config, passphrase: string,
   { iterations = DEFAULT_ITERATIONS }: { iterations?: number } = {}): Promise<string> {
   const salt = b64encode(crypto.getRandomValues(new Uint8Array(16)));
   const key = await deriveKeyB64(passphrase, salt, iterations);
-  const { iconCache, ...payload } = config;
+  const payload = stripIconCache(config);
   const env: Envelope = {
     format: FORMAT,
     version: ENVELOPE_VERSION,
