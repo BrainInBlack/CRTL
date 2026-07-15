@@ -1,12 +1,13 @@
 /* Modals: entry editor, global options (probes + encrypted sync), help. */
 
-import { CONFIG, persist, flushGist, rerender } from './state';
-import { embedIcon, iconEl, pruneIconCache, findBrandSets } from './icons';
+import { CONFIG, persist, flushGist, rerender, applyConfig, saveLocal, importing } from './state';
+import { embedIcon, embedAllIcons, iconEl, pruneIconCache, findBrandSets } from './icons';
 import { BI_ICONS } from './icon-list';
 import {
   getSync, setSync, exportSyncBlob, importSyncBlob,
   generateKeyB64, createGist, importFromGist, getSyncError
 } from './sync';
+import { exportBackup, importBackup, downloadBackup, backupCryptoAvailable } from './backup';
 import { recheckLocation } from './location';
 import { startDrag, resolveY } from './dnd';
 import { errMsg, safeUrl } from './util';
@@ -238,6 +239,77 @@ export function openOptionsModal(): void {
   pf.appendChild(ph);
   body.appendChild(pf);
 
+  // Encrypted local backup - the offline sibling of gist sync.
+  const bkSec = document.createElement('div'); bkSec.className = 'field';
+  const bkHead = document.createElement('div'); bkHead.className = 'sync-head';
+  const bkLabel = document.createElement('label'); bkLabel.textContent = 'Encrypted backup'; bkLabel.style.margin = '0';
+  bkHead.appendChild(bkLabel);
+  bkSec.appendChild(bkHead);
+  const bkStatus = document.createElement('div'); bkStatus.className = 'hint';
+  bkStatus.innerHTML = 'Export groups, links, and probes as a passphrase-encrypted file - no GitHub needed. <b>Sync credentials are never included</b>; icons re-embed from their ids on import.';
+  bkSec.appendChild(bkStatus);
+  body.appendChild(bkSec);
+
+  const passF  = fieldText('Backup passphrase (min. 8 characters)'); passF.input.type = 'password';
+  const pass2F = fieldText('Repeat passphrase (export only)'); pass2F.input.type = 'password';
+  body.append(passF.field, pass2F.field);
+
+  const bkBtns = document.createElement('div'); bkBtns.style.display = 'flex'; bkBtns.style.gap = '8px'; bkBtns.style.marginBottom = '14px';
+  const exportBtn = document.createElement('button'); exportBtn.className = 'btn'; exportBtn.textContent = 'Export file';
+  const importFileBtn = document.createElement('button'); importFileBtn.className = 'btn'; importFileBtn.textContent = 'Import file';
+  const fileIn = document.createElement('input'); fileIn.type = 'file'; fileIn.accept = '.json,application/json'; fileIn.style.display = 'none';
+  bkBtns.append(exportBtn, importFileBtn, fileIn);
+  body.appendChild(bkBtns);
+
+  if (!backupCryptoAvailable()) {
+    exportBtn.disabled = importFileBtn.disabled = true;
+    bkStatus.innerHTML = 'Backup needs a secure context (<code>file://</code> or <code>https://</code>) - not available on a page served over plain <code>http://</code>.';
+  }
+
+  exportBtn.addEventListener('click', async () => {
+    const p = passF.input.value;
+    if (p.length < 8) { alert('Enter a passphrase of at least 8 characters first.'); return; }
+    if (p !== pass2F.input.value) { alert('The passphrases do not match.'); return; }
+    exportBtn.disabled = true; exportBtn.textContent = 'Exporting...';
+    try { downloadBackup(await exportBackup(CONFIG, p)); }
+    catch (err) { alert('Export failed: ' + errMsg(err)); }
+    finally { exportBtn.disabled = false; exportBtn.textContent = 'Export file'; }
+  });
+
+  importFileBtn.addEventListener('click', () => {
+    if (importing) { alert('A sync import is in progress - try again in a moment.'); return; }
+    if (!passF.input.value) { alert('Enter the backup passphrase first.'); return; }
+    fileIn.value = ''; // allow re-picking the same file
+    fileIn.click();
+  });
+
+  fileIn.addEventListener('change', async () => {
+    const file = fileIn.files && fileIn.files[0];
+    if (!file) return;
+    importFileBtn.disabled = true; importFileBtn.textContent = 'Importing...';
+    try {
+      // Decrypt first, confirm second - a wrong passphrase should fail before
+      // the user is asked to overwrite anything.
+      const next = await importBackup(await file.text(), passF.input.value);
+      if (!confirm('Replace the config in this browser with the backup?')) return;
+      applyConfig(next);                       // normalizes + keeps the local icon cache
+      probesTa.value = (CONFIG.homeProbes || []).join('\n'); // keep the open modal in sync
+      await embedAllIcons((done, total) => {
+        importFileBtn.textContent = total ? `Icons ${done}/${total}...` : 'Icons...';
+      });
+      saveLocal();                             // persist freshly fetched icons (no version bump)
+      persist();                               // the import is a real edit - bump + mark gist dirty
+      flushGist();                             // options live outside edit mode - push now
+      rerender();                              // repaint with the now-cached icons
+      recheckLocation();                       // probes may have changed
+      bkStatus.textContent = 'Backup imported.';
+    } catch (err) {
+      alert('Import failed: ' + errMsg(err));
+    } finally {
+      importFileBtn.disabled = false; importFileBtn.textContent = 'Import file';
+    }
+  });
+
   // Encrypted gist sync.
   const cur0 = getSync();
   const sec = document.createElement('div'); sec.className = 'field';
@@ -390,8 +462,9 @@ export function openHelpModal(): void {
       <p>Icons: <code>bi:name</code> (<a href="https://icons.getbootstrap.com" target="_blank" rel="noopener noreferrer">Bootstrap</a>) or <code>svg:name</code> (<a href="https://superdevpro.com/brands" target="_blank" rel="noopener noreferrer">brand</a>); uncurated ones fetch once from a CDN.</p>
     </div>
     <div class="help-section">
-      <h4>Sync</h4>
+      <h4>Sync &amp; backup</h4>
       <p>Config saves in this browser. <b>Global options</b> enables encrypted GitHub-gist sync across machines - AES-encrypted, but your token + key sit in local storage in plaintext.</p>
+      <p>No GitHub? <b>Encrypted backup</b> (also in Global options) exports the config as a passphrase-protected file you can import on another machine.</p>
     </div>
     <div class="help-about">CRTL v${APP_VERSION} <span>(${IS_WEB ? 'web' : 'local'} build)</span></div>
   `;

@@ -127,6 +127,22 @@ A couple of things to know:
   just this one - and it's stored locally in plaintext next to the encryption key
   (the setup blob holds both too). Only enable sync on machines you trust.
 
+## Backup
+
+No GitHub? **Gear -> Global options -> Encrypted backup** exports your config as
+a passphrase-encrypted file (`crtl-backup-YYYY-MM-DD.json`) you can import on
+another machine - or keep as a plain backup. Nothing leaves your device; the file
+is AES-encrypted with a key derived from your passphrase (PBKDF2), so it's safe
+to park on a USB stick or a cloud drive.
+
+- The file holds your groups, links, and Home probes. **Sync credentials are
+  never included.**
+- Icons aren't in the file either (same as gist sync) - they're re-embedded from
+  their `bi:`/`svg:` ids after import, so non-curated ones fetch once from the
+  CDN, exactly as on save.
+- Like sync, it needs a secure context: works from `file://` and `https://`, not
+  from a page served over plain `http://`.
+
 ## Home and Away on the hosted version
 
 On the hosted (`https://`) build, automatic Home / Away detection is off, because

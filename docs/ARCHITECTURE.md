@@ -82,6 +82,7 @@ else is built by JS.
 | `icon-list.js` | The curated icon name lists that feed `gen-icons` (stays `.js` so the Node script can import it). |
 | `edit.ts` / `modals.ts` / `dnd.ts` | Edit mode: inline group/entry editing, dialogs (entry editor, Global options, help), and drag-and-drop reordering. |
 | `sync.ts` | Encrypted GitHub-gist sync (see below). |
+| `backup.ts` | Passphrase-encrypted config export/import to a local file (see below). |
 | `globals.d.ts` | Ambient `HTMLElement` augmentation for the two ad-hoc element props (`_onClose`, `_hAnim`). |
 | `styles.css` | The whole theme, with the CRT palette exposed as CSS variables in `:root`. |
 
@@ -170,6 +171,26 @@ Sync is **last-write-wins** on wall-clock `version` timestamps - fine for one
 active machine at a time; concurrent edits on two machines can lose the older
 write, and clock skew decides ties. Sync failures tint the gear icon (a
 `sync-status` window event drives the indicator in `main.ts`).
+
+## Encrypted local backup
+
+`src/backup.ts` is the offline sibling of gist sync: it exports the config as a
+passphrase-encrypted file and imports it elsewhere, with no account or network.
+The file is a versioned envelope - `{ format, version, kdf, payload }` - where
+`payload` is the same `base64(iv || AES-GCM ct)` format `encryptStr`/`decryptStr`
+produce (they're reused as-is). The key is derived from the passphrase with
+PBKDF2-SHA256 and a per-export random salt; the iteration count is stored in the
+envelope so it can be raised later without breaking old files, and bounded on
+import so a hostile file can't stall the tab inside `deriveBits`.
+
+The plaintext payload deliberately mirrors the gist payload: config **without
+the icon cache** (icons re-embed from their ids after import, exactly like a
+gist import) and **never any sync credentials** - those live in a separate
+localStorage key and are not part of `CONFIG` in the first place. An imported
+config is untrusted input and goes through `applyConfig()`/`normalizeConfig()`
+like a gist payload; the import then runs `embedAllIcons()`, persists with a
+version bump, and flushes to the gist if sync is on - so the existing
+conflict-handling applies unchanged.
 
 ## Security surface
 

@@ -96,8 +96,8 @@ function clearSyncError(): void { if (syncError !== null) { syncError = null; em
 
 /* ---- AES-GCM ---- */
 
-const b64encode = (buf: ArrayBuffer | Uint8Array) => btoa(String.fromCharCode(...new Uint8Array(buf)));
-const b64decode = (str: string) => Uint8Array.from(atob(str), c => c.charCodeAt(0));
+export const b64encode = (buf: ArrayBuffer | Uint8Array) => btoa(String.fromCharCode(...new Uint8Array(buf)));
+export const b64decode = (str: string) => Uint8Array.from(atob(str), c => c.charCodeAt(0));
 
 /** Fresh 256-bit key, base64 (raw) for storage. */
 export async function generateKeyB64(): Promise<string> {

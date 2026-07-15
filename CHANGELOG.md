@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- **Encrypted local backup.** Global options can now export the config as a
+  passphrase-encrypted file and import it on another machine - no GitHub
+  account needed. The key is derived per export via PBKDF2-SHA256 (600k
+  iterations, random salt); the payload is AES-GCM encrypted and mirrors the
+  gist payload: groups, links, and probes only - no icon cache (icons re-embed
+  from their `bi:`/`svg:` ids on import) and never any sync credentials. Like
+  gist sync it needs a secure context (`file://` or `https://`).
+
 ### Changed
 
 - **Relicensed from PolyForm Noncommercial 1.0.0 to MIT + Commons Clause.**
