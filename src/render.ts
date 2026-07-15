@@ -52,12 +52,25 @@ function buildEntry(entry: Entry, away: boolean, gi: number, ei: number): HTMLEl
   row.appendChild(more);
 
   // Health dot - only with checks enabled, at Home, with a probeable target.
-  // (On the hosted build, http targets aren't probeable, so their dots are
-  // omitted rather than shown perpetually "down".)
-  if (entry.check && !away && hasLinks && isProbeable(ordered[0].url)) {
+  // The target defaults to the first link but an entry can override it
+  // (entry.checkUrl): a service that blocks the cross-origin fetch of its main
+  // page (CORS/CORP) or sits behind auth can be checked at a dedicated health
+  // endpoint while the tile still opens the first link. (On the hosted build,
+  // http targets aren't probeable, so their dots are omitted rather than shown
+  // perpetually "down".)
+  const probeTarget = (entry.checkUrl || '').trim() || (hasLinks ? ordered[0].url : '');
+  if (entry.check && !away && probeTarget && isProbeable(probeTarget)) {
     const status = document.createElement('span');
     status.className = 'entry-status checking';
-    status.dataset.probeUrl = ordered[0].url;
+    // Colour-blind friendly mode: pre-mount both glyphs; CSS reveals the one
+    // matching the up/down class, so runServiceProbes stays untouched.
+    if (CONFIG.colorBlind) {
+      status.classList.add('glyphs');
+      const up = iconSpan('check-lg'); up.classList.add('glyph-up');
+      const down = iconSpan('x-lg'); down.classList.add('glyph-down');
+      status.append(up, down);
+    }
+    status.dataset.probeUrl = probeTarget;
     row.insertBefore(status, more);
   }
 

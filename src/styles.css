@@ -13,6 +13,10 @@
   --status-up:        #6b8e6b;
   --status-down:      #c97a4a;
   --status-unknown:   #888;
+  /* Colour-blind glyph colours: the thin strokes need far darker ink than the
+     filled dot to stay visible on the light background (>=4.5:1 vs --crt-bg). */
+  --status-up-glyph:   #1f4a1f;
+  --status-down-glyph: #6e2e0e;
   --pill-away:        #e8b08a;
   /* Interactive accents (primary button, toggles, focus, progress). Follows the
      status-up green on the light theme, the phosphor colour on dark. */
@@ -41,6 +45,9 @@
   --crt-text-on-bg:   #d8a24e;
   --status-up:        #7fb87f;
   --status-down:      #e0654a;
+  /* Bright-on-dark already contrasts fine; glyphs keep the dot colours. */
+  --status-up-glyph:   var(--status-up);
+  --status-down-glyph: var(--status-down);
   --pill-away:        #ff9068;
   --accent:           #e8ab55;
   --knockout-a:       #ffdca8;
@@ -224,6 +231,35 @@ body {
 .entry-status.checking { animation: pulse 1s ease-in-out infinite; }
 .entry-status.up   { background: var(--status-up);   color: var(--status-up); }
 .entry-status.down { background: var(--status-down); color: var(--status-down); }
+
+/* Colour-blind friendly mode: a resolved dot becomes a check / cross glyph
+   (colour stays, but shape carries the signal). The span keeps a fixed 14px
+   slot in every state - while checking, the pulsing neutral dot renders
+   centred via ::before - so a resolving probe swaps content in place instead
+   of shifting the row. */
+.entry-status.glyphs {
+  width: 14px;
+  height: 14px;
+  background: transparent;
+  border-radius: 0;
+  box-shadow: none;
+  font-size: 14px;
+  line-height: 1;
+  position: relative;
+}
+.entry-status.glyphs.checking::before {
+  content: '';
+  position: absolute;
+  inset: 3.5px; /* 7px dot, same as the classic indicator */
+  border-radius: 50%;
+  background: var(--status-unknown);
+  box-shadow: 0 0 4px var(--status-unknown);
+}
+.entry-status.glyphs .svgicon { display: none; filter: drop-shadow(0 0 3px currentColor); }
+.entry-status.glyphs.up   { color: var(--status-up-glyph); }
+.entry-status.glyphs.down { color: var(--status-down-glyph); }
+.entry-status.glyphs.up   .glyph-up   { display: inline-block; }
+.entry-status.glyphs.down .glyph-down { display: inline-block; }
 
 /* ---------- Long-press slide-in overlay ---------- */
 .entry-overlay {
@@ -455,7 +491,7 @@ body.edit-mode .group-header:active { cursor: grabbing; }
    GEAR MENU + MODALS
    ===================================================================== */
 
-.gear, .help, .theme {
+.gear, .help, .theme, .a11y {
   position: fixed;
   bottom: 20px;
   width: 32px;
@@ -475,7 +511,8 @@ body.edit-mode .group-header:active { cursor: grabbing; }
 .gear  { right: 20px; }
 .theme { right: 60px; font-size: 18px; }
 .help  { left: 20px; }
-.gear:hover, .help:hover, .theme:hover { opacity: 1; }
+.a11y  { left: 60px; font-size: 20px; }
+.gear:hover, .help:hover, .theme:hover, .a11y:hover { opacity: 1; }
 .gear.sync-error { color: var(--status-down); opacity: 1; } /* sync failing */
 
 .gear-menu {
@@ -826,6 +863,7 @@ body.edit-mode .group-header:active { cursor: grabbing; }
   .gear          { bottom: 16px; right: 16px; }
   .theme         { bottom: 16px; right: 52px; }
   .help          { bottom: 16px; left: 16px; }
+  .a11y          { bottom: 16px; left: 52px; }
   .location-pill { top: 12px; right: 12px; }
   .gear-menu     { bottom: 56px; right: 16px; }
 }

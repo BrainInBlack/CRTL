@@ -60,4 +60,24 @@ describe('loadLocalConfig', () => {
     expect(c.groups[0].entries[0].icon).toBe('');            // renders the fallback icon
     expect(c.iconCache).toEqual({ 'bi:ok': 'data:image/svg+xml;base64,AAAA' });
   });
+
+  it('coerces colorBlind to a strict boolean (defaults off)', () => {
+    expect(loadLocalConfig().colorBlind).toBe(false);            // absent -> off
+    localStorage.setItem(CONFIG_KEY, JSON.stringify({ colorBlind: 'yes' }));
+    expect(loadLocalConfig().colorBlind).toBe(false);            // truthy junk -> off
+    localStorage.setItem(CONFIG_KEY, JSON.stringify({ colorBlind: true }));
+    expect(loadLocalConfig().colorBlind).toBe(true);             // real true kept
+  });
+
+  it('keeps a string entry.checkUrl and drops a non-string one', () => {
+    localStorage.setItem(CONFIG_KEY, JSON.stringify({
+      groups: [{ group: 'G', entries: [
+        { name: 'A', icon: 'bi:x', check: true, checkUrl: 'https://a/health', links: [] },
+        { name: 'B', icon: 'bi:x', check: true, checkUrl: 42, links: [] }
+      ] }]
+    }));
+    const [a, b] = loadLocalConfig().groups[0].entries;
+    expect(a.checkUrl).toBe('https://a/health');                // valid string kept
+    expect(b.checkUrl).toBeUndefined();                         // non-string dropped
+  });
 });
