@@ -4,7 +4,7 @@ Phosphor / CRT-styled homelab dashboard. Ships as one self-contained
 `CRTL.html` - fonts and curated icons are baked in, so it has no runtime
 dependencies and works fully offline. Open it in a browser and you're done.
 
-![License: PolyForm NC 1.0.0](https://img.shields.io/badge/license-PolyForm%20NC%201.0.0-blue) ![TypeScript](https://img.shields.io/badge/TypeScript-strict-3178c6?logo=typescript&logoColor=white) ![Vite](https://img.shields.io/badge/built%20with-Vite-646cff?logo=vite&logoColor=white) ![Local-first](https://img.shields.io/badge/data-100%25%20local-brightgreen) ![Offline](https://img.shields.io/badge/offline-single--file-informational) [![CI](https://github.com/BrainInBlack/CRTL/actions/workflows/ci.yml/badge.svg)](https://github.com/BrainInBlack/CRTL/actions/workflows/ci.yml)
+![License: MIT + Commons Clause](https://img.shields.io/badge/license-MIT%20%2B%20Commons%20Clause-blue) ![TypeScript](https://img.shields.io/badge/TypeScript-strict-3178c6?logo=typescript&logoColor=white) ![Vite](https://img.shields.io/badge/built%20with-Vite-646cff?logo=vite&logoColor=white) ![Local-first](https://img.shields.io/badge/data-100%25%20local-brightgreen) ![Offline](https://img.shields.io/badge/offline-single--file-informational) [![CI](https://github.com/BrainInBlack/CRTL/actions/workflows/ci.yml/badge.svg)](https://github.com/BrainInBlack/CRTL/actions/workflows/ci.yml)
 
 <p align="center">
   <img src="docs/screenshot.png" alt="CRTL - phosphor / CRT homelab dashboard" width="820">
@@ -194,4 +194,6 @@ public issue.
 
 ## License
 
-[PolyForm Noncommercial 1.0.0](LICENSE) (c) BrainInBlack - free for noncommercial use.
+[MIT + Commons Clause](LICENSE) (c) 2026 BrainInBlack - free to use (including
+inside a company), modify, and share; you just may not sell it. See the
+[Commons Clause](https://commonsclause.com/) for what "sell" means.

@@ -3,7 +3,7 @@
   "private": true,
   "version": "1.0.1",
   "description": "Phosphor/CRT homelab dashboard. Source is modular under src/; `npm run build` inlines it into the single self-contained CRTL.html. Vite dev is a live preview.",
-  "license": "PolyForm-Noncommercial-1.0.0",
+  "license": "SEE LICENSE IN LICENSE",
   "author": "BrainInBlack <braininblack@gmail.com>",
   "homepage": "https://github.com/BrainInBlack/CRTL#readme",
   "repository": {

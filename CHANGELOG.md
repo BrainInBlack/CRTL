@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- **Relicensed from PolyForm Noncommercial 1.0.0 to MIT + Commons Clause.**
+  PolyForm NC barred all commercial use, including a company running CRTL on its
+  own internal homelab. The new terms allow use (companies included),
+  modification, and free redistribution, and forbid only selling the software
+  (per the Commons Clause). Updated `LICENSE`, `package.json`, the README badge
+  and license note, and CONTRIBUTING.
+
 ## [1.0.1] - 2026-07-14
 
 ### Changed
