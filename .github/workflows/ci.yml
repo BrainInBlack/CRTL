@@ -5,7 +5,7 @@ on:
   push:
   pull_request:
 
-# Least privilege: this workflow only reads the repo to build it.
+# Least privilege: this workflow only reads the repo to type-check, test, and build it.
 permissions:
   contents: read
 
