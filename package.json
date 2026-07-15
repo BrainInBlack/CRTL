@@ -36,18 +36,20 @@
     "build": "tsc --noEmit && vite build",
     "build:web": "tsc --noEmit && BUILD_TARGET=web vite build && BUILD_TARGET=local DOWNLOAD_COPY=1 vite build",
     "build:all": "npm run build && npm run build:web",
+    "preview": "vite preview",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "test:watch": "vitest",
-    "gen-icons": "node scripts/gen-icons.mjs"
+    "gen-icons": "node scripts/gen-icons.mjs",
+    "deploy": "bash scripts/deploy.sh"
   },
   "devDependencies": {
     "bootstrap-icons": "^1.13.1",
-    "happy-dom": "^20.9.0",
+    "happy-dom": "^20.10.6",
     "typescript": "~7.0.2",
     "vite": "^8.1.4",
     "vite-plugin-singlefile": "^2.3.3",
-    "vitest": "^4.1.7"
+    "vitest": "^4.1.9"
   },
   "dependencies": {
     "@fontsource/orbitron": "^5.2.8"
