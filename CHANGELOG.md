@@ -16,6 +16,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   gist payload: groups, links, and probes only - no icon cache (icons re-embed
   from their `bi:`/`svg:` ids on import) and never any sync credentials. Like
   gist sync it needs a secure context (`file://` or `https://`).
+- **Accessibility menu + colour-blind friendly health dots.** A new button next
+  to Help opens an Accessibility menu; its first option renders resolved health
+  dots as a check (up) or cross (down) glyph instead of relying on colour alone.
+  The setting is part of the synced config, so it follows you across machines.
+  Thanks to [@hckroeger](https://github.com/hckroeger) for the prototype.
+- **Per-entry health-check URL.** An entry can now probe a dedicated endpoint
+  (e.g. a `/health` path) instead of its first link, so services that block the
+  cross-origin health fetch (CORS/CORP) or sit behind a login stop showing a
+  false "down" while the tile still opens the first link. Thanks to
+  [@hckroeger](https://github.com/hckroeger) for the prototype.
 
 ### Changed
 
@@ -34,6 +44,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   modification, and free redistribution, and forbid only selling the software
   (per the Commons Clause). Updated `LICENSE`, `package.json`, the README badge
   and license note, and CONTRIBUTING.
+
+### Fixed
+
+- **`http://` no longer disappears when re-editing a link.** The entry editor
+  used to strip any scheme from the URL field for display, so an explicitly
+  entered `http://` looked lost on the next edit (it was still saved, via a
+  hidden original-scheme fallback). Now only the default `https://` is hidden;
+  `http://` stays visible and round-trips - and deleting it upgrades the link to
+  the `https://` default. Thanks to [@hckroeger](https://github.com/hckroeger)
+  for the prototype.
 
 ## [1.0.1] - 2026-07-14
 

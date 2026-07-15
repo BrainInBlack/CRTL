@@ -9,7 +9,7 @@ import { biUri, embedAllIcons } from './icons';
 import { IS_WEB } from './build';
 import { closeSlideout, runServiceProbes } from './render';
 import { setEditMode } from './edit';
-import { openOptionsModal, openHelpModal, closeModal } from './modals';
+import { openOptionsModal, openHelpModal, openA11yModal, closeModal } from './modals';
 import { setState, recheckLocation } from './location';
 import { probeHome, canAutoDetect } from './probes';
 import { syncFromGist, importFromGist, isSyncReady, getSync, getSyncError } from './sync';
@@ -32,6 +32,7 @@ gear.addEventListener('click', (e) => { e.stopPropagation(); gearMenu.classList.
 document.getElementById('toggle-edit')!.addEventListener('click', () => setEditMode(!editMode));
 document.getElementById('open-options')!.addEventListener('click', () => { gearMenu.classList.remove('open'); openOptionsModal(); });
 document.getElementById('help')!.addEventListener('click', openHelpModal);
+document.getElementById('a11y')!.addEventListener('click', openA11yModal);
 
 // Hosted build only: offer a download of the offline single-file version, which
 // is deployed alongside the app at download/CRTL.html (see vite.config.ts).

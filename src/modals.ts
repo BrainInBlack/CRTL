@@ -47,8 +47,10 @@ function fieldText(label: string, value?: string): { field: HTMLElement; input: 
 }
 
 // Scheme is optional in a link field: a bare host becomes https://; an explicitly
-// typed http://|https:// is kept; an unchanged existing value keeps its original
-// scheme, so http-only internal services aren't silently upgraded to https.
+// typed http://|https:// is kept. Only the default https:// is hidden in the
+// field (http:// stays visible and round-trips via the first branch), so an
+// unchanged scheme-less value maps back to its https:// original - and deleting
+// a visible http:// reads as intent to upgrade to the https default.
 function resolveLinkUrl(input: HTMLInputElement): string {
   const raw = input.value.trim();
   if (!raw) return '';
@@ -57,7 +59,7 @@ function resolveLinkUrl(input: HTMLInputElement): string {
   // survive an edit), and it hardens the explicit-scheme branch too.
   if (/^https?:\/\//i.test(raw)) return safeUrl(raw);
   const orig = input.dataset.orig || '';
-  if (orig && raw === orig.replace(/^https?:\/\//i, '')) return safeUrl(orig);
+  if (orig && raw === orig.replace(/^https:\/\//i, '')) return safeUrl(orig);
   return safeUrl('https://' + raw);
 }
 
@@ -155,6 +157,25 @@ export function openEntryModal(gi: number, ei: number, isNew?: boolean): void {
   checkField.appendChild(cr);
   body.appendChild(checkField);
 
+  // Optional probe-target override: check a dedicated endpoint instead of the
+  // first link. Scheme handling matches the link fields (https:// hidden, http://
+  // kept visible, bare host -> https).
+  const checkUrlField = document.createElement('div'); checkUrlField.className = 'field';
+  checkUrlField.innerHTML = '<label>Health-check URL (optional)</label>';
+  const checkUrlInput = document.createElement('input'); checkUrlInput.type = 'text';
+  checkUrlInput.placeholder = 'defaults to the first link';
+  checkUrlInput.value = (entry.checkUrl || '').replace(/^https:\/\//i, '');
+  checkUrlInput.dataset.orig = entry.checkUrl || '';
+  checkUrlField.appendChild(checkUrlInput);
+  const checkUrlHint = document.createElement('div'); checkUrlHint.className = 'hint';
+  checkUrlHint.textContent = 'Probe a dedicated endpoint (e.g. a /health path) instead of the first link - for services that block the check (CORS/CORP) or sit behind a login. The tile still opens the first link.';
+  checkUrlField.appendChild(checkUrlHint);
+  body.appendChild(checkUrlField);
+  // Only relevant when the health dot is on.
+  const syncCheckUrlVis = () => { checkUrlField.style.display = cb.checked ? '' : 'none'; };
+  syncCheckUrlVis();
+  cb.addEventListener('change', syncCheckUrlVis);
+
   // Growable link list (fixed-height scroll -> modal never resizes).
   const linksField = document.createElement('div'); linksField.className = 'field';
   linksField.innerHTML = '<label>Links - first is the default click target</label>';
@@ -167,7 +188,7 @@ export function openEntryModal(gi: number, ei: number, isNew?: boolean): void {
     const h = iconEl('bi:grip-vertical'); h.classList.add('drag-handle');
     const lbl = document.createElement('input'); lbl.type = 'text'; lbl.placeholder = 'Label'; lbl.className = 'lbl'; lbl.value = link.label || '';
     const url = document.createElement('input'); url.type = 'text'; url.placeholder = 'service.example.com'; url.className = 'url';
-    url.value = (link.url || '').replace(/^https?:\/\//i, ''); // show without scheme
+    url.value = (link.url || '').replace(/^https:\/\//i, ''); // hide only the default scheme; http:// stays visible
     url.dataset.orig = link.url || '';                        // remember scheme for unchanged saves
     const rm = document.createElement('span'); rm.className = 'rm'; rm.title = 'Remove'; rm.appendChild(iconEl('bi:x-lg'));
     rm.addEventListener('click', () => row.remove());
@@ -210,6 +231,8 @@ export function openEntryModal(gi: number, ei: number, isNew?: boolean): void {
     entry.name  = name.input.value.trim() || 'Untitled';
     entry.icon  = iconVal || 'bi:box-fill';
     entry.check = cb.checked;
+    const cu = resolveLinkUrl(checkUrlInput);
+    if (cu) entry.checkUrl = cu; else delete entry.checkUrl;
     entry.links = [...list.querySelectorAll<HTMLElement>('.link-row')]
       .map(r => ({ label: r.querySelector<HTMLInputElement>('.lbl')!.value.trim(), url: resolveLinkUrl(r.querySelector<HTMLInputElement>('.url')!) }))
       .filter(l => l.url);
@@ -456,6 +479,40 @@ export function openOptionsModal(): void {
   foot.append(close, save);
 }
 
+/* ---- accessibility ---- */
+
+/** A small home for accessibility options (opened from the button next to Help).
+   Toggles apply immediately - persist + push + repaint - so there's no Save. */
+export function openA11yModal(): void {
+  const { backdrop, body, foot } = buildModal('Accessibility');
+
+  const intro = document.createElement('div'); intro.className = 'hint'; intro.style.marginBottom = '14px';
+  intro.textContent = 'Options to make CRTL easier to read. Changes apply immediately.';
+  body.appendChild(intro);
+
+  // Colour-blind friendly health dots.
+  const cbField = document.createElement('div'); cbField.className = 'field';
+  const cbRow = document.createElement('label'); cbRow.className = 'check-row';
+  const cbInput = document.createElement('input'); cbInput.type = 'checkbox'; cbInput.checked = !!CONFIG.colorBlind;
+  cbRow.append(cbInput, document.createTextNode(' Colour-blind friendly health dots (check / cross marks)'));
+  cbField.appendChild(cbRow);
+  const cbHint = document.createElement('div'); cbHint.className = 'hint';
+  cbHint.textContent = 'Resolved health dots show a check (up) or cross (down) glyph, not colour alone.';
+  cbField.appendChild(cbHint);
+  body.appendChild(cbField);
+
+  cbInput.addEventListener('change', () => {
+    CONFIG.colorBlind = cbInput.checked;
+    persist();      // a real edit: bump version + mark the gist dirty
+    flushGist();    // options live outside edit mode - push now
+    rerender();     // re-mount the dots in the new mode
+  });
+
+  const close = document.createElement('button'); close.className = 'btn primary'; close.textContent = 'Close';
+  close.addEventListener('click', () => closeModal(backdrop));
+  foot.append(close);
+}
+
 /* ---- help ---- */
 
 export function openHelpModal(): void {
@@ -480,7 +537,7 @@ export function openHelpModal(): void {
       <h4>Using the dashboard</h4>
       <p><b>Click</b> an entry to open its main link.</p>
       <p><b>Long-press</b> (or tap the dots) to reveal all of an entry's links.</p>
-      <p>The <b>Home / Away</b> pill (top-right) auto-detects your location; click to cycle <b>lock -> switch -> auto</b>. Away shows public links first and dims home-only entries. Dots: green up, amber down.</p>
+      <p>The <b>Home / Away</b> pill (top-right) auto-detects your location; click to cycle <b>lock -> switch -> auto</b>. Away shows public links first and dims home-only entries. Dots: green up, amber down - or check / cross marks with the colour-blind option in the <b>Accessibility</b> menu (bottom-left).</p>
     </div>
     ${webNote}
     <div class="help-section">

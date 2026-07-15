@@ -18,6 +18,6 @@ export const BI_ICONS = [
 
 export const CHROME_ICONS = [
   'gear-fill','sliders','question-lg','question-circle','pencil-fill','trash-fill',
-  'plus-lg','grip-vertical','three-dots-vertical','x-lg','box-fill','box-seam-fill',
-  'sun-fill','moon-fill','download'
+  'plus-lg','grip-vertical','three-dots-vertical','x-lg','check-lg','universal-access',
+  'box-fill','box-seam-fill','sun-fill','moon-fill','download'
 ];
