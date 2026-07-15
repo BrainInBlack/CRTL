@@ -1,6 +1,6 @@
 /* Modals: entry editor, global options (probes + encrypted sync), help. */
 
-import { CONFIG, persist, flushGist, rerender, applyConfig, saveLocal, importing, setImporting } from './state';
+import { CONFIG, persist, flushGist, rerender, applyConfig, saveLocal, importing, setImporting } from './state'; 
 import { embedIcon, embedAllIcons, iconEl, pruneIconCache, findBrandSets } from './icons';
 import { BI_ICONS } from './icon-list';
 import {
