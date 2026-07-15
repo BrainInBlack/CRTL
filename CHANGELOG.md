@@ -19,6 +19,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- **Tidier Global options.** The gist sync and encrypted backup sections are now
+  collapsible and collapsed by default, so the modal opens compact. Each header
+  stays visible - including the sync on/off toggle - and the sync section
+  auto-expands when there's a sync error to surface.
 - **Deep config sanitization.** `normalizeConfig` now also drops null/non-object
   records inside `groups`/`entries`/`links`, non-string probes and icon-cache
   values, and coerces non-string entry icons, so a corrupt or hostile payload -
