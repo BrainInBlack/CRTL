@@ -47,8 +47,10 @@ function fieldText(label: string, value?: string): { field: HTMLElement; input: 
 }
 
 // Scheme is optional in a link field: a bare host becomes https://; an explicitly
-// typed http://|https:// is kept; an unchanged existing value keeps its original
-// scheme, so http-only internal services aren't silently upgraded to https.
+// typed http://|https:// is kept. Only the default https:// is hidden in the
+// field (http:// stays visible and round-trips via the first branch), so an
+// unchanged scheme-less value maps back to its https:// original - and deleting
+// a visible http:// reads as intent to upgrade to the https default.
 function resolveLinkUrl(input: HTMLInputElement): string {
   const raw = input.value.trim();
   if (!raw) return '';
@@ -57,7 +59,7 @@ function resolveLinkUrl(input: HTMLInputElement): string {
   // survive an edit), and it hardens the explicit-scheme branch too.
   if (/^https?:\/\//i.test(raw)) return safeUrl(raw);
   const orig = input.dataset.orig || '';
-  if (orig && raw === orig.replace(/^https?:\/\//i, '')) return safeUrl(orig);
+  if (orig && raw === orig.replace(/^https:\/\//i, '')) return safeUrl(orig);
   return safeUrl('https://' + raw);
 }
 
@@ -167,7 +169,7 @@ export function openEntryModal(gi: number, ei: number, isNew?: boolean): void {
     const h = iconEl('bi:grip-vertical'); h.classList.add('drag-handle');
     const lbl = document.createElement('input'); lbl.type = 'text'; lbl.placeholder = 'Label'; lbl.className = 'lbl'; lbl.value = link.label || '';
     const url = document.createElement('input'); url.type = 'text'; url.placeholder = 'service.example.com'; url.className = 'url';
-    url.value = (link.url || '').replace(/^https?:\/\//i, ''); // show without scheme
+    url.value = (link.url || '').replace(/^https:\/\//i, ''); // hide only the default scheme; http:// stays visible
     url.dataset.orig = link.url || '';                        // remember scheme for unchanged saves
     const rm = document.createElement('span'); rm.className = 'rm'; rm.title = 'Remove'; rm.appendChild(iconEl('bi:x-lg'));
     rm.addEventListener('click', () => row.remove());
@@ -254,6 +256,14 @@ export function openOptionsModal(): void {
   ph.textContent = 'Endpoints reachable only on your home network. If any responds, you are Home.';
   pf.appendChild(ph);
   body.appendChild(pf);
+
+  // Colour-blind friendly health dots.
+  const cbField = document.createElement('div'); cbField.className = 'field';
+  const cbRow = document.createElement('label'); cbRow.className = 'check-row';
+  const cbInput = document.createElement('input'); cbInput.type = 'checkbox'; cbInput.checked = !!CONFIG.colorBlind;
+  cbRow.append(cbInput, document.createTextNode(' Colour-blind friendly health dots (check / cross marks)'));
+  cbField.appendChild(cbRow);
+  body.appendChild(cbField);
 
   // Encrypted gist sync.
   const cur0 = getSync();
@@ -432,6 +442,7 @@ export function openOptionsModal(): void {
         finalize: persist
       });
       probesTa.value = (CONFIG.homeProbes || []).join('\n'); // keep the open modal in sync
+      cbInput.checked = !!CONFIG.colorBlind;                 // (a later Save must not undo the import)
       recheckLocation();                       // probes may have changed
       bkStatus.textContent = 'Backup imported.';
     } catch (err) {
@@ -448,9 +459,14 @@ export function openOptionsModal(): void {
   const save = document.createElement('button'); save.className = 'btn primary'; save.textContent = 'Save options';
   save.addEventListener('click', () => {
     CONFIG.homeProbes = probesTa.value.split('\n').map(s => s.trim()).filter(Boolean);
+    const cbChanged = CONFIG.colorBlind !== cbInput.checked;
+    CONFIG.colorBlind = cbInput.checked;
     persist();
     flushGist();   // options live outside edit mode - push this change now
     closeModal(backdrop);
+    // Re-mount the health dots only when the glyph mode actually flipped - an
+    // unconditional rerender would reset every dot to "checking" on any save.
+    if (cbChanged) rerender();
     recheckLocation();
   });
   foot.append(close, save);
@@ -480,7 +496,7 @@ export function openHelpModal(): void {
       <h4>Using the dashboard</h4>
       <p><b>Click</b> an entry to open its main link.</p>
       <p><b>Long-press</b> (or tap the dots) to reveal all of an entry's links.</p>
-      <p>The <b>Home / Away</b> pill (top-right) auto-detects your location; click to cycle <b>lock -> switch -> auto</b>. Away shows public links first and dims home-only entries. Dots: green up, amber down.</p>
+      <p>The <b>Home / Away</b> pill (top-right) auto-detects your location; click to cycle <b>lock -> switch -> auto</b>. Away shows public links first and dims home-only entries. Dots: green up, amber down - or check / cross marks with the colour-blind option in <b>Global options</b>.</p>
     </div>
     ${webNote}
     <div class="help-section">

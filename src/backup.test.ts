@@ -8,8 +8,11 @@ const hasSubtle = typeof globalThis.crypto?.subtle?.encrypt === 'function';
 // Full PBKDF2 cost is deliberately slow; tests dial it down.
 const FAST = { iterations: 1000 };
 
+// colorBlind is set on purpose: the round-trip's toEqual proves newer config
+// fields ride along in the export (the payload is spread, not picked).
 const config: Config = {
   version: 1752580000000,
+  colorBlind: true,
   homeProbes: ['http://192.168.1.1/'],
   groups: [{
     group: 'Lab',

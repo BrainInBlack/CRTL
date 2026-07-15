@@ -57,6 +57,14 @@ function buildEntry(entry: Entry, away: boolean, gi: number, ei: number): HTMLEl
   if (entry.check && !away && hasLinks && isProbeable(ordered[0].url)) {
     const status = document.createElement('span');
     status.className = 'entry-status checking';
+    // Colour-blind friendly mode: pre-mount both glyphs; CSS shows the one
+    // matching the up/down class, so runServiceProbes stays untouched.
+    if (CONFIG.colorBlind) {
+      status.classList.add('glyphs');
+      const up = iconSpan('check-lg'); up.classList.add('glyph-up');
+      const down = iconSpan('x-lg'); down.classList.add('glyph-down');
+      status.append(up, down);
+    }
     status.dataset.probeUrl = ordered[0].url;
     row.insertBefore(status, more);
   }

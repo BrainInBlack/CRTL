@@ -26,6 +26,8 @@ export interface Config {
   homeProbes: string[];
   groups: Group[];
   iconCache: Record<string, string>;
+  /** Colour-blind friendly mode: health dots resolve to check/cross glyphs. */
+  colorBlind: boolean;
 }
 
 /** Gist-sync credentials, stored locally in the clear. */

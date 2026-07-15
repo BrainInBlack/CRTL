@@ -20,7 +20,7 @@ const clone = <T>(x: T): T =>
   typeof structuredClone === 'function' ? structuredClone(x) : JSON.parse(JSON.stringify(x));
 
 function defaultConfig(): Config {
-  return { version: Date.now(), homeProbes: clone(DEFAULT_HOME_PROBES), groups: clone(DEFAULT_GROUPS), iconCache: {} };
+  return { version: Date.now(), homeProbes: clone(DEFAULT_HOME_PROBES), groups: clone(DEFAULT_GROUPS), iconCache: {}, colorBlind: false };
 }
 
 // Non-null object (not array) - the only record shape render() can consume.
@@ -57,7 +57,8 @@ function normalizeConfig(raw: Partial<Config> | null | undefined): Config {
     groups:     normalizeGroups(c.groups),
     iconCache:  c.iconCache && isRecord(c.iconCache)
       ? Object.fromEntries(Object.entries(c.iconCache).filter(([, v]) => typeof v === 'string'))
-      : {}
+      : {},
+    colorBlind: c.colorBlind === true
   };
 }
 

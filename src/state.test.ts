@@ -35,6 +35,14 @@ describe('loadLocalConfig', () => {
     expect(Array.isArray(c.homeProbes)).toBe(true);
   });
 
+  it('coerces colorBlind to a strict boolean (defaults off)', () => {
+    expect(loadLocalConfig().colorBlind).toBe(false);            // absent -> off
+    localStorage.setItem(CONFIG_KEY, JSON.stringify({ colorBlind: 'yes' }));
+    expect(loadLocalConfig().colorBlind).toBe(false);            // truthy junk -> off
+    localStorage.setItem(CONFIG_KEY, JSON.stringify({ colorBlind: true }));
+    expect(loadLocalConfig().colorBlind).toBe(true);             // real true kept
+  });
+
   it('drops null/non-object groups, entries, links, and probes (hostile payload)', () => {
     localStorage.setItem(CONFIG_KEY, JSON.stringify({
       groups: [null, 'x', 7, {
