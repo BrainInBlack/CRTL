@@ -2,7 +2,7 @@
    localStorage in the clear (it's the user's own machine); only the gist
    payload is AES-GCM encrypted. */
 
-import { CONFIG, applyConfig, setImporting, editMode, rerender, saveLocal } from './state';
+import { CONFIG, applyConfig, setImporting, importing, editMode, rerender, saveLocal } from './state';
 import { embedAllIcons } from './icons';
 import { errMsg } from './util';
 import type { Config, SyncCreds } from './types';
@@ -212,12 +212,16 @@ export async function createGist(pat: string, keyB64: string): Promise<string> {
    discard local. No-ops until this machine has imported the gist. */
 export async function syncFromGist(): Promise<void> {
   if (!getSync() || !isSyncReady()) return;
-  // Don't pull (adopt or prompt) out from under an open editor or active drag -
-  // in edit mode local IS the working copy and is expected to be newer.
-  if (editMode || document.querySelector('.modal-backdrop') || document.querySelector('.dragging')) return;
+  // Don't pull (adopt or prompt) out from under an open editor, active drag, or
+  // a running import - in edit mode local IS the working copy and is expected
+  // to be newer; mid-import CONFIG is being replaced.
+  if (editMode || importing || document.querySelector('.modal-backdrop') || document.querySelector('.dragging')) return;
   try {
     const remote = await loadFromGist();
     clearSyncError();
+    // Re-check after the network await: an import that started meanwhile owns
+    // CONFIG now - adopting the gist on top of it would clobber the import.
+    if (importing) return;
     if (!remote || !remote.version) return;
     if (remote.version === CONFIG.version) {        // already in sync
       deferredConflict = null;
@@ -228,11 +232,16 @@ export async function syncFromGist(): Promise<void> {
     // deferred on: that's now a two-way divergence, so re-ask instead of
     // silently clobbering the local changes.
     if (remote.version > CONFIG.version && !deferredConflict) {
-      applyConfig(remote);
-      await embedAllIcons();
-      saveLocal();                                // persist the freshly-fetched icons
-      markSynced();                               // local now equals the gist
-      rerender();                                 // repaint with the now-cached icons
+      // Hold the import lock across the adopt: it replaces CONFIG over an
+      // await, and a backup import starting mid-embed would interleave.
+      setImporting(true);
+      try {
+        applyConfig(remote);
+        await embedAllIcons();
+        saveLocal();                              // persist the freshly-fetched icons
+        markSynced();                             // local now equals the gist
+        rerender();                               // repaint with the now-cached icons
+      } finally { setImporting(false); }
       return;
     }
     await handleConflict(remote);                   // local newer, or a deferred divergence
@@ -284,11 +293,15 @@ async function handleConflict(remote: Config): Promise<void> {
     await saveToGist();
   } else if (act === 'download') {   // discard local, adopt the gist
     deferredConflict = null;
-    applyConfig(remote);
-    await embedAllIcons();
-    saveLocal();                   // persist the freshly-fetched icons
-    markSynced();                  // local now equals the gist
-    rerender();                    // repaint with the now-cached icons
+    // Same lock as the background adopt: CONFIG is replaced over an await.
+    setImporting(true);
+    try {
+      applyConfig(remote);
+      await embedAllIcons();
+      saveLocal();                 // persist the freshly-fetched icons
+      markSynced();                // local now equals the gist
+      rerender();                  // repaint with the now-cached icons
+    } finally { setImporting(false); }
   } else {                           // Later - remind only if something changes
     deferredConflict = { remoteVer, localVer };
   }
@@ -361,6 +374,7 @@ function showImportOverlay(onCancel?: () => void): ImportUI {
 export async function importFromGist({ silent = false }: { silent?: boolean } = {}): Promise<void> {
   const s = getSync();
   if (!s) return;
+  if (importing) return; // another import (gist or backup) already owns the lock
   setImporting(true);
   // Bound the import so a hung request can't lock the UI forever; Cancel aborts too.
   const controller = new AbortController();

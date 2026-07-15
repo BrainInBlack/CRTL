@@ -16,6 +16,9 @@ export const DEFAULT_ITERATIONS = 600_000;
 // Ceiling for imported files: a hostile envelope with a huge iteration count
 // would otherwise stall the tab inside deriveBits.
 const MAX_ITERATIONS = 10_000_000;
+/** Size ceiling for imported files. A real backup is a few KB; anything huge is
+   hostile or wrong and would stall the tab in text()/JSON.parse/atob. */
+export const MAX_BACKUP_BYTES = 10_000_000;
 
 /** The backup file: a versioned envelope around base64(iv || AES-GCM ct). */
 interface Envelope {
@@ -30,8 +33,8 @@ interface Envelope {
 export const backupCryptoAvailable = (): boolean => !!globalThis.crypto?.subtle;
 
 /** Passphrase -> base64 raw AES key, so encryptStr/decryptStr (sync.ts) can be
-   reused as-is. */
-async function deriveKeyB64(passphrase: string, saltB64: string, iterations: number): Promise<string> {
+   reused as-is. Exported for tests. */
+export async function deriveKeyB64(passphrase: string, saltB64: string, iterations: number): Promise<string> {
   const material = await crypto.subtle.importKey(
     'raw', new TextEncoder().encode(passphrase), 'PBKDF2', false, ['deriveBits']);
   const bits = await crypto.subtle.deriveBits(
@@ -61,6 +64,7 @@ export async function exportBackup(config: Config, passphrase: string,
    a malformed envelope or a wrong passphrase. The result is untrusted input -
    callers hand it to applyConfig(), which normalizes it like a gist payload. */
 export async function importBackup(text: string, passphrase: string): Promise<Config> {
+  if (text.length > MAX_BACKUP_BYTES) throw new Error('Not a CRTL backup file');
   let env: Partial<Envelope>;
   try { env = JSON.parse(text) as Partial<Envelope>; }
   catch { throw new Error('Not a CRTL backup file'); }
@@ -70,13 +74,17 @@ export async function importBackup(text: string, passphrase: string): Promise<Co
   if (!k || k.algo !== 'PBKDF2-SHA256' || typeof k.salt !== 'string'
     || typeof k.iterations !== 'number' || k.iterations < 1 || k.iterations > MAX_ITERATIONS
     || typeof env.payload !== 'string') throw new Error('Not a CRTL backup file');
+  let cfg: Config;
   try {
     const key = await deriveKeyB64(passphrase, k.salt, k.iterations);
-    return JSON.parse(await decryptStr(env.payload, key)) as Config;
+    cfg = JSON.parse(await decryptStr(env.payload, key)) as Config;
   } catch {
     // Covers a bad salt, a failed GCM auth, and non-JSON plaintext alike.
     throw new Error('Wrong passphrase or corrupted backup');
   }
+  // Export never includes the icon cache; drop a smuggled one so the exclusion
+  // holds in both directions (icons rebuild from their ids instead).
+  return { ...cfg, iconCache: {} };
 }
 
 /** Trigger a browser download of the envelope. */

@@ -6,7 +6,7 @@ import { DEFAULT_HOME_PROBES, DEFAULT_GROUPS } from './config';
 import { getSync, isSyncReady, commitToGist, reportSyncError } from './sync';
 import { render } from './render';
 import { migrateStorage } from './migrate';
-import type { Config, LocationState } from './types';
+import type { Config, Group, LocationState } from './types';
 
 // Rename legacy startpage-* keys before the first read below (this is the
 // earliest-evaluated module that touches persistence).
@@ -23,17 +23,41 @@ function defaultConfig(): Config {
   return { version: Date.now(), homeProbes: clone(DEFAULT_HOME_PROBES), groups: clone(DEFAULT_GROUPS), iconCache: {} };
 }
 
-/** Coerce an untrusted config (localStorage or gist) into a valid shape so a
-   corrupt/hostile payload - e.g. `groups` as a non-array - can't brick render()
-   with a thrown `.forEach`. Only top-level fields are checked; deeper record
-   fields are guarded at their use sites. */
+// Non-null object (not array) - the only record shape render() can consume.
+const isRecord = (x: unknown): boolean => !!x && typeof x === 'object' && !Array.isArray(x);
+
+/** Deep-coerce untrusted `groups`: drop non-object groups/entries/links so a
+   crafted payload can't crash render()/orderLinks() with a null record, and
+   coerce non-string icons - iconUri() requires a string ('' renders the
+   question-mark fallback). */
+function normalizeGroups(raw: unknown): Group[] {
+  if (!Array.isArray(raw)) return clone(DEFAULT_GROUPS);
+  return (raw as Group[]).filter(isRecord).map(g => ({
+    ...g,
+    entries: Array.isArray(g.entries)
+      ? g.entries.filter(isRecord).map(e => ({
+          ...e,
+          icon: typeof e.icon === 'string' ? e.icon : '',
+          links: Array.isArray(e.links) ? e.links.filter(isRecord) : []
+        }))
+      : []
+  }));
+}
+
+/** Coerce an untrusted config (localStorage, gist, or backup file) into a valid
+   shape so a corrupt/hostile payload - e.g. `groups` as a non-array, nulls
+   inside `groups`/`entries`/`links`, or non-string icons/cache values - can't
+   brick render(). Remaining scalar fields (names, urls, labels) are safe at
+   their use sites (textContent / safeUrl). */
 function normalizeConfig(raw: Partial<Config> | null | undefined): Config {
   const c = raw ?? {};
   return {
     version:    typeof c.version === 'number' ? c.version : Date.now(),
-    homeProbes: Array.isArray(c.homeProbes) ? c.homeProbes : clone(DEFAULT_HOME_PROBES),
-    groups:     Array.isArray(c.groups)     ? c.groups     : clone(DEFAULT_GROUPS),
-    iconCache:  c.iconCache && typeof c.iconCache === 'object' ? c.iconCache : {}
+    homeProbes: Array.isArray(c.homeProbes) ? c.homeProbes.filter(p => typeof p === 'string') : clone(DEFAULT_HOME_PROBES),
+    groups:     normalizeGroups(c.groups),
+    iconCache:  c.iconCache && isRecord(c.iconCache)
+      ? Object.fromEntries(Object.entries(c.iconCache).filter(([, v]) => typeof v === 'string'))
+      : {}
   };
 }
 

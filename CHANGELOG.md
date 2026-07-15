@@ -19,6 +19,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- **Deep config sanitization.** `normalizeConfig` now also drops null/non-object
+  records inside `groups`/`entries`/`links`, non-string probes and icon-cache
+  values, and coerces non-string entry icons, so a corrupt or hostile payload -
+  from localStorage, a synced gist, or an imported backup file - can't crash
+  rendering and persist itself as a bricked config.
 - **Relicensed from PolyForm Noncommercial 1.0.0 to MIT + Commons Clause.**
   PolyForm NC barred all commercial use, including a company running CRTL on its
   own internal homelab. The new terms allow use (companies included),

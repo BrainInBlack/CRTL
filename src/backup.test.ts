@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'vitest';
-import { exportBackup, importBackup } from './backup';
+import { exportBackup, importBackup, deriveKeyB64, MAX_BACKUP_BYTES } from './backup';
+import { encryptStr, b64encode } from './sync';
 import type { Config } from './types';
 
 const hasSubtle = typeof globalThis.crypto?.subtle?.encrypt === 'function';
@@ -24,8 +25,24 @@ const config: Config = {
     expect(env).not.toContain('nas.local');           // payload is opaque
     const out = await importBackup(env, 'correct horse');
     const { iconCache, ...expected } = config;
-    expect(out).toEqual(expected);
-    expect('iconCache' in out).toBe(false);           // icons re-embed from ids instead
+    expect(out).toEqual({ ...expected, iconCache: {} }); // icons re-embed from ids instead
+  });
+
+  it('ignores an iconCache smuggled into the payload', async () => {
+    // A real export never contains an iconCache - craft an envelope that does.
+    const salt = b64encode(crypto.getRandomValues(new Uint8Array(16)));
+    const key = await deriveKeyB64('correct horse', salt, FAST.iterations);
+    const payload = await encryptStr(JSON.stringify(config), key); // config INCLUDES iconCache
+    const env = JSON.stringify({
+      format: 'crtl-backup', version: 1,
+      kdf: { algo: 'PBKDF2-SHA256', iterations: FAST.iterations, salt }, payload
+    });
+    const out = await importBackup(env, 'correct horse');
+    expect(out.iconCache).toEqual({});                // smuggled cache dropped
+  });
+
+  it('rejects an oversized input without parsing it', async () => {
+    await expect(importBackup('x'.repeat(MAX_BACKUP_BYTES + 1), 'x')).rejects.toThrow(/not a crtl backup/i);
   });
 
   it('exposes only envelope fields, never credentials or icons', async () => {

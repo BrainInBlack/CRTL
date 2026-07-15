@@ -1,13 +1,13 @@
 /* Modals: entry editor, global options (probes + encrypted sync), help. */
 
-import { CONFIG, persist, flushGist, rerender, applyConfig, saveLocal, importing } from './state';
+import { CONFIG, persist, flushGist, rerender, applyConfig, saveLocal, importing, setImporting } from './state';
 import { embedIcon, embedAllIcons, iconEl, pruneIconCache, findBrandSets } from './icons';
 import { BI_ICONS } from './icon-list';
 import {
   getSync, setSync, exportSyncBlob, importSyncBlob,
   generateKeyB64, createGist, importFromGist, getSyncError
 } from './sync';
-import { exportBackup, importBackup, downloadBackup, backupCryptoAvailable } from './backup';
+import { exportBackup, importBackup, downloadBackup, backupCryptoAvailable, MAX_BACKUP_BYTES } from './backup';
 import { recheckLocation } from './location';
 import { startDrag, resolveY } from './dnd';
 import { errMsg, safeUrl } from './util';
@@ -286,7 +286,15 @@ export function openOptionsModal(): void {
   fileIn.addEventListener('change', async () => {
     const file = fileIn.files && fileIn.files[0];
     if (!file) return;
+    // Re-check the lock: the picker was open for a while, and a gist import or
+    // adopt may have taken it since the button-click check. Synchronous from
+    // here to setImporting(true), so the check can't go stale.
+    if (importing) { alert('A sync import is in progress - try again in a moment.'); return; }
+    if (file.size > MAX_BACKUP_BYTES) { alert('Import failed: file is too large to be a CRTL backup.'); return; }
     importFileBtn.disabled = true; importFileBtn.textContent = 'Importing...';
+    // Take the same write-lock as a gist import: blocks edit mode, the gist
+    // buttons below, and the periodic background pull while CONFIG is replaced.
+    setImporting(true);
     try {
       // Decrypt first, confirm second - a wrong passphrase should fail before
       // the user is asked to overwrite anything.
@@ -299,15 +307,16 @@ export function openOptionsModal(): void {
       });
       saveLocal();                             // persist freshly fetched icons (no version bump)
       persist();                               // the import is a real edit - bump + mark gist dirty
-      flushGist();                             // options live outside edit mode - push now
       rerender();                              // repaint with the now-cached icons
       recheckLocation();                       // probes may have changed
       bkStatus.textContent = 'Backup imported.';
     } catch (err) {
       alert('Import failed: ' + errMsg(err));
     } finally {
+      setImporting(false);
       importFileBtn.disabled = false; importFileBtn.textContent = 'Import file';
     }
+    flushGist();  // options live outside edit mode - push now (after the lock drops)
   });
 
   // Encrypted gist sync.
@@ -372,6 +381,7 @@ export function openOptionsModal(): void {
   backdrop._onClose = () => window.removeEventListener('sync-status', refreshSyncUI);
 
   toggle.addEventListener('click', async () => {
+    if (importing) { alert('Another import is already running - try again in a moment.'); return; }
     if (getSync()) { setSync(null); blobTa.value = ''; refreshSyncUI(); return; }
     const pat = patF.input.value.trim(), key = keyF.input.value.trim();
     let id = idF.input.value.trim();
@@ -406,6 +416,7 @@ export function openOptionsModal(): void {
   });
 
   importBtn.addEventListener('click', async () => {
+    if (importing) { alert('Another import is already running - try again in a moment.'); return; }
     try {
       const s = importSyncBlob(blobTa.value);
       patF.input.value = s.pat; idF.input.value = s.gistId; keyF.input.value = s.key;

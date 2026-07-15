@@ -34,4 +34,30 @@ describe('loadLocalConfig', () => {
     expect(c.groups).toEqual(DEFAULT_GROUPS);
     expect(Array.isArray(c.homeProbes)).toBe(true);
   });
+
+  it('drops null/non-object groups, entries, links, and probes (hostile payload)', () => {
+    localStorage.setItem(CONFIG_KEY, JSON.stringify({
+      groups: [null, 'x', 7, {
+        group: 'G',
+        entries: [null, [], { name: 'E', icon: 'bi:x', check: false, links: [null, { label: 'L', url: 'https://a' }, 7] }]
+      }],
+      homeProbes: ['https://ok', null, 5]
+    }));
+    const c = loadLocalConfig();
+    expect(c.groups).toEqual([{
+      group: 'G',
+      entries: [{ name: 'E', icon: 'bi:x', check: false, links: [{ label: 'L', url: 'https://a' }] }]
+    }]);
+    expect(c.homeProbes).toEqual(['https://ok']);
+  });
+
+  it('coerces non-string icons and drops non-string icon-cache values (no iconUri crash)', () => {
+    localStorage.setItem(CONFIG_KEY, JSON.stringify({
+      groups: [{ group: 'G', entries: [{ name: 'E', icon: 5, check: false, links: [] }] }],
+      iconCache: { 'bi:ok': 'data:image/svg+xml;base64,AAAA', 'bi:bad': 123, 'bi:worse': null }
+    }));
+    const c = loadLocalConfig();
+    expect(c.groups[0].entries[0].icon).toBe('');            // renders the fallback icon
+    expect(c.iconCache).toEqual({ 'bi:ok': 'data:image/svg+xml;base64,AAAA' });
+  });
 });
