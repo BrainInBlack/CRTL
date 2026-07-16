@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.2.1] - 2026-07-16
+
+### Fixed
+
+- The version shown in the UI now matches the release. `package.json` had been
+  stuck at 1.0.1, so builds since then reported the wrong version (`v1.2.0`
+  displayed as 1.0.1).
+
 ## [1.2.0] - 2026-07-15
 
 ### Added
