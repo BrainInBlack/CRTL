@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- Opening a link's primary target no longer leaks the CRTL page URL: the
+  single-tap `window.open` now sets `noreferrer` alongside `noopener`, so no
+  `Referer` header is sent. Overlay (secondary) links already stripped it.
+
 ## [1.2.1] - 2026-07-16
 
 ### Fixed

@@ -132,7 +132,7 @@ function buildEntry(entry: Entry, away: boolean, gi: number, ei: number): HTMLEl
   row.addEventListener('click', (e) => {
     if (longPressed) { e.preventDefault(); e.stopPropagation(); longPressed = false; return; }
     if (wrap.classList.contains('open')) { e.preventDefault(); closeSlideout(); return; }
-    if (hasLinks) { const target = safeUrl(ordered[0].url); if (target) window.open(target, '_blank', 'noopener'); }
+    if (hasLinks) { const target = safeUrl(ordered[0].url); if (target) window.open(target, '_blank', 'noopener,noreferrer'); }
   });
   row.addEventListener('contextmenu', (e) => e.preventDefault());
 
