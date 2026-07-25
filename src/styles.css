@@ -118,6 +118,11 @@ body {
   position: relative;
   display: flex;
   align-items: center;
+  /* The header is the group's drag handle; the drag only lifts after a few px
+     of travel, so without this a mouse drag would select the title text first.
+     (The contenteditable title opts back in below.) */
+  user-select: none;
+  -webkit-user-select: none;
 }
 
 /* Knockout title: the gradient is clipped to the text on the title span, not
@@ -160,8 +165,16 @@ body {
 }
 
 /* On hover text + icons take the page background colour (knockout against the
-   dark block behind). The block colour distinguishes active from inactive. */
-.entry:hover {
+   dark block behind). The block colour distinguishes active from inactive.
+
+   Every hover cue below is paired: :hover with a mouse, :active on touch. A
+   coarse pointer reports a fake :hover on tap and latches it there (iOS keeps
+   it until you tap something else), which would leave rows looking permanently
+   selected - :active instead shows the cue while the finger is down and drops
+   it on release. body.touch is the same source the JS reads, so the manual
+   override in Accessibility moves both together (see touch.ts). */
+body:not(.touch) .entry:hover,
+body.touch .entry:active {
   color: var(--knockout-a);
   text-shadow: none;
 }
@@ -169,13 +182,16 @@ body {
 /* Drop shadow on the wrap, not the entry (whose shadow the wrap's overflow
    would clip). On dark a black shadow is invisible - an amber outline takes
    over as the hover cue. */
-.entry-wrap:hover { box-shadow: 2px 2px 8px rgba(0, 0, 0, 0.3); }
-:root.dark .entry-wrap:hover {
+body:not(.touch) .entry-wrap:hover,
+body.touch .entry-wrap:active { box-shadow: 2px 2px 8px rgba(0, 0, 0, 0.3); }
+:root.dark body:not(.touch) .entry-wrap:hover,
+:root.dark body.touch .entry-wrap:active {
   box-shadow: none;
   outline: 1px solid rgba(var(--glow), 0.6);
 }
 
-.entry:hover::before {
+body:not(.touch) .entry:hover::before,
+body.touch .entry:active::before {
   content: '';
   position: absolute;
   inset: 0;
@@ -202,8 +218,10 @@ body {
 
 /* Hovered disabled entry drops the dimming (avoids a stacking context that would
    hide its text) and uses the inactive colour for its block. */
-.entry-wrap.unreachable > .entry:hover { opacity: 1; }
-.entry-wrap.unreachable > .entry:hover::before {
+body:not(.touch) .entry-wrap.unreachable > .entry:hover,
+body.touch .entry-wrap.unreachable > .entry:active { opacity: 1; }
+body:not(.touch) .entry-wrap.unreachable > .entry:hover::before,
+body.touch .entry-wrap.unreachable > .entry:active::before {
   background: color-mix(in srgb, var(--crt-dark) 55%, transparent);
 }
 
@@ -214,7 +232,8 @@ body {
   margin-left: 8px;
 }
 .entry-more.placeholder { visibility: hidden; } /* present for column alignment */
-.entry:hover .entry-more { opacity: 1; }
+body:not(.touch) .entry:hover .entry-more,
+body.touch .entry:active .entry-more { opacity: 1; }
 
 /* ---------- Per-service health dot ---------- */
 .entry-status {
@@ -313,10 +332,12 @@ body {
   width: 1px;
   background: rgba(var(--glow), 0.45);
 }
-.overlay-link:hover {
+body:not(.touch) .overlay-link:hover,
+body.touch .overlay-link:active {
   background-image: linear-gradient(180deg, var(--crt-text-bright) 0%, var(--crt-text-medium) 100%);
 }
-.overlay-link:hover::after {
+body:not(.touch) .overlay-link:hover::after,
+body.touch .overlay-link:active::after {
   content: '';
   position: absolute;
   inset: 0;
@@ -384,15 +405,21 @@ body {
 
 .entry-actions, .add-entry, .add-group, .drag-handle { display: none; }
 
-body.edit-mode .entry-actions { display: flex; }
+/* Mouse: inline icons on the row, revealed on hover. Touch: no hover to reveal
+   them with, so the row opens a context menu instead and shows a grip. */
+body.edit-mode:not(.touch) .entry-actions { display: flex; }
 body.edit-mode .add-entry,
-body.edit-mode .add-group     { display: flex; }
-body.edit-mode .drag-handle   { display: flex; }
+body.edit-mode .add-group        { display: flex; }
+body.edit-mode.touch .drag-handle { display: flex; }
 
-/* In edit mode the whole row is the drag handle (buttons keep their cursor). */
-body.edit-mode .entry { cursor: grab; }
-body.edit-mode .entry:active { cursor: grabbing; }
-body.edit-mode .entry-more { display: none; }
+/* In edit mode the whole row is the drag handle (buttons keep their cursor);
+   on touch only the grip is, so the rest of the row can still scroll. */
+body.edit-mode:not(.touch) .entry { cursor: grab; }
+body.edit-mode:not(.touch) .entry:active { cursor: grabbing; }
+body.edit-mode:not(.touch) .entry-more { display: none; }
+/* Touch keeps the three-dots in edit mode - even on single-link entries, where
+   they are otherwise a hidden spacer - as the "this row has actions" cue. */
+body.edit-mode.touch .entry-more { visibility: visible; opacity: 1; }
 body.edit-mode .group { outline: 1px dashed rgba(var(--ink), 0.35); }
 
 .entry-actions {
@@ -402,7 +429,7 @@ body.edit-mode .group { outline: 1px dashed rgba(var(--ink), 0.35); }
   opacity: 0;
   transition: opacity 0.12s ease;
 }
-body.edit-mode .entry-wrap:hover .entry-actions { opacity: 1; }
+body.edit-mode:not(.touch) .entry-wrap:hover .entry-actions { opacity: 1; }
 
 .entry-action {
   display: flex;
@@ -421,12 +448,42 @@ body.edit-mode .entry-wrap:hover .entry-actions { opacity: 1; }
   cursor: grab;
   color: var(--crt-text-on-bg);
   opacity: 0.5;
+  user-select: none;
+  -webkit-user-select: none;
 }
 .drag-handle:active { cursor: grabbing; }
 
+/* The grip on a row / group header is a thumb target, and the one element that
+   opts out of browser scrolling: without touch-action the browser claims the
+   gesture as a scroll and cancels the drag mid-lift.
+
+   Small glyph, large target. `.svgicon` paints its mask to `contain` the
+   element box, so that box *is* the glyph size - sizing the target with
+   min-width would scale the dots up with it. The 44px of thumb area is padding
+   instead, and mask-origin keeps the paint inside the 20px content box: the
+   same dot size and pitch as the multi-link indicator beside it (both are
+   1.5r dots in a 16 viewBox drawn at 20px).
+
+   Negative margins hang the box into the container's leading padding, so
+   neither the row nor the header grows. The one -12px inset serves both - a
+   row pads 15px and a header 20px, so each grip lands on its own content edge,
+   keeping the 5px offset the two always had. */
+body.touch .entry .drag-handle,
+body.touch .group-header .drag-handle {
+  touch-action: none;
+  width: 44px;
+  height: 44px;
+  padding: 12px; /* border-box: leaves a 20px content box for the glyph */
+  -webkit-mask-origin: content-box;
+          mask-origin: content-box;
+  margin: -11px -4px -11px -12px;
+  opacity: 0.55;
+}
+body.touch .group-header .drag-handle { color: var(--knockout-a); }
+
 /* In edit mode the whole header is the drag handle (title + delete keep theirs). */
-body.edit-mode .group-header { cursor: grab; }
-body.edit-mode .group-header:active { cursor: grabbing; }
+body.edit-mode:not(.touch) .group-header { cursor: grab; }
+body.edit-mode:not(.touch) .group-header:active { cursor: grabbing; }
 
 .group-delete {
   display: flex;
@@ -443,6 +500,8 @@ body.edit-mode .group-header:active { cursor: grabbing; }
   outline: 1px dashed rgba(var(--glow), 0.6);
   cursor: text;
   min-width: 20px;
+  user-select: text;
+  -webkit-user-select: text;
 }
 
 .add-entry {
@@ -565,6 +624,46 @@ body.edit-mode .group-header:active { cursor: grabbing; }
 .gear-item.on .toggle { background: var(--accent); }
 .gear-item.on .toggle::after { transform: translateX(16px); }
 
+/* ---------- Context menu (touch row actions, see menu.ts) ---------- */
+.menu-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 150; /* over the rows, under the modals it opens */
+  opacity: 0;
+  transition: opacity 0.12s ease;
+}
+.menu-backdrop.open { opacity: 1; }
+
+.context-menu {
+  position: fixed;
+  min-width: 160px;
+  background: var(--crt-dark);
+  border: 2px solid rgba(var(--ink), 0.4);
+  box-shadow: 2px 2px 12px rgba(0, 0, 0, 0.45);
+  display: flex;
+  flex-direction: column;
+}
+
+.menu-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 16px;
+  font-size: 13px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: var(--crt-text-dim);
+  cursor: pointer;
+  user-select: none;
+  -webkit-user-select: none;
+}
+.menu-item + .menu-item { border-top: 1px solid rgba(var(--glow), 0.2); }
+.menu-item.danger { color: var(--status-down); }
+body:not(.touch) .menu-item:hover,
+body.touch .menu-item:active { background: rgba(var(--glow), 0.12); color: var(--crt-text-bright); }
+body:not(.touch) .menu-item.danger:hover,
+body.touch .menu-item.danger:active { color: var(--status-down); }
+
 .modal-backdrop {
   position: fixed;
   inset: 0;
@@ -664,9 +763,13 @@ body.edit-mode .group-header:active { cursor: grabbing; }
   gap: 10px;
   border-top: 1px solid rgba(var(--glow), 0.2);
 }
+/* A dialog with no buttons (help) would otherwise show an empty bar. */
+.modal-footer:empty { display: none; }
 
 .field { margin-bottom: 14px; }
-.field > label {
+/* Field header. A .check-row is a <label> too, but it labels its checkbox, not
+   the field - it keeps normal sentence case (see below). */
+.field > label:not(.check-row) {
   display: block;
   font-size: 11px;
   letter-spacing: 1px;
@@ -677,6 +780,7 @@ body.edit-mode .group-header:active { cursor: grabbing; }
 
 .modal input[type="text"],
 .modal input[type="password"],
+.modal select,
 .modal textarea {
   width: 100%;
   padding: 8px 10px;
@@ -686,8 +790,10 @@ body.edit-mode .group-header:active { cursor: grabbing; }
   background: rgba(0, 0, 0, 0.35);
   border: 1px solid rgba(var(--glow), 0.25);
 }
+.modal select { cursor: pointer; }
 .modal input[type="text"]:focus,
 .modal input[type="password"]:focus,
+.modal select:focus,
 .modal textarea:focus { outline: none; border-color: var(--accent); }
 .modal textarea { resize: vertical; min-height: 70px; }
 
@@ -708,8 +814,53 @@ body.edit-mode .group-header:active { cursor: grabbing; }
 .btn.primary:hover { filter: brightness(1.1); }
 .btn.danger:hover { color: var(--status-down); }
 
-.check-row { display: flex; align-items: center; gap: 8px; }
-.check-row input { width: auto; }
+.check-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  font-size: 13px;
+  color: var(--crt-text-dim);
+}
+
+/* Themed checkbox: the native control is a rounded OS-blue widget that has
+   nothing to do with the rest of the panel, so it is drawn from scratch -
+   a sharp phosphor box with a CSS tick (no icon plumbing needed). */
+.check-row input[type="checkbox"] {
+  appearance: none;
+  -webkit-appearance: none;
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
+  margin: 0;
+  position: relative;
+  cursor: pointer;
+  background: rgba(0, 0, 0, 0.35);
+  border: 1px solid rgba(var(--glow), 0.35);
+}
+.check-row input[type="checkbox"]:checked {
+  background: var(--accent);
+  border-color: var(--accent);
+}
+.check-row input[type="checkbox"]:checked::after {
+  content: '';
+  position: absolute;
+  left: 4px;
+  top: 0;
+  width: 5px;
+  height: 9px;
+  border: solid var(--crt-dark);
+  border-width: 0 2px 2px 0;
+  transform: rotate(45deg);
+}
+.check-row input[type="checkbox"]:focus-visible {
+  outline: 1px solid var(--crt-text-bright);
+  outline-offset: 1px;
+}
+body:not(.touch) .check-row:hover input[type="checkbox"]:not(:checked),
+body.touch .check-row:active input[type="checkbox"]:not(:checked) {
+  border-color: rgba(var(--glow), 0.7);
+}
 
 /* Entry-modal icon preview. */
 .icon-row { display: flex; align-items: center; gap: 10px; }
@@ -855,6 +1006,57 @@ body.edit-mode .group-header:active { cursor: grabbing; }
 }
 .help-about span { opacity: 0.7; }
 
+/* =====================================================================
+   TOUCH
+   body.touch mirrors (pointer: coarse) plus the manual override (touch.ts).
+   Targets a finger has to hit grow to ~44px; where a control sits inside a
+   fixed-height bar, negative margins buy the height back so the layout
+   doesn't shift. Hover cues are handled at each rule above, not here.
+   ===================================================================== */
+
+body.touch .entry { padding: 14px 15px; }
+body.touch .entry-more { font-size: 20px; }
+
+/* The group's delete button: 44px of target inside an unchanged header. */
+body.touch .group-delete {
+  min-width: 44px;
+  min-height: 44px;
+  margin: -11px -10px -11px auto;
+  font-size: 16px;
+}
+
+/* Fixed chrome, bottom corners. Wider buttons need wider spacing between the
+   two on each side, and the gear menu clears the taller button. */
+body.touch .gear,
+body.touch .help,
+body.touch .theme,
+body.touch .a11y { width: 44px; height: 44px; opacity: 0.75; }
+body.touch .theme { right: 72px; }
+body.touch .a11y  { left: 72px; }
+body.touch .gear-menu { bottom: 76px; }
+
+body.touch .location-pill { padding: 12px 16px; }
+body.touch .add-entry { padding: 12px; }
+body.touch .gear-item { padding: 14px; }
+body.touch .modal .btn { padding: 12px 18px; }
+body.touch .link-row .rm { padding: 10px; }
+/* The whole label toggles the box, so padding the row is what grows the target. */
+body.touch .check-row { padding: 6px 0; }
+/* The link list scrolls, so its grips need the same touch-action opt-out as the
+   row grips - otherwise reordering links is read as a scroll of the list. */
+body.touch .link-row .drag-handle {
+  touch-action: none;
+  width: 36px;
+  height: 36px;
+  padding: 11px; /* 14px of glyph inside a 36px target - as above */
+  -webkit-mask-origin: content-box;
+          mask-origin: content-box;
+  margin: 0 -6px;
+}
+body.touch .modal select,
+body.touch .modal input[type="text"],
+body.touch .modal input[type="password"] { padding: 11px 10px; }
+
 /* ---------- Mobile ---------- */
 @media (max-width: 768px) {
   body          { padding: 70px 10px 20px; }
@@ -866,4 +1068,22 @@ body.edit-mode .group-header:active { cursor: grabbing; }
   .a11y          { bottom: 16px; left: 52px; }
   .location-pill { top: 12px; right: 12px; }
   .gear-menu     { bottom: 56px; right: 16px; }
+
+  body.touch .theme     { right: 68px; }
+  body.touch .a11y      { left: 68px; }
+  body.touch .gear-menu { bottom: 72px; }
+}
+
+/* The fixed bottom corners sit where the iPhone home indicator lives; with
+   viewport-fit=cover (index.html) the inset is non-zero only where it matters. */
+@supports (padding: env(safe-area-inset-bottom)) {
+  .gear, .help, .theme, .a11y { bottom: calc(20px + env(safe-area-inset-bottom)); }
+  .gear-menu { bottom: calc(64px + env(safe-area-inset-bottom)); }
+  body.touch .gear-menu { bottom: calc(76px + env(safe-area-inset-bottom)); }
+  /* Last, so the narrow-screen offsets win over the touch ones above. */
+  @media (max-width: 768px) {
+    .gear, .help, .theme, .a11y { bottom: calc(16px + env(safe-area-inset-bottom)); }
+    .gear-menu            { bottom: calc(56px + env(safe-area-inset-bottom)); }
+    body.touch .gear-menu { bottom: calc(72px + env(safe-area-inset-bottom)); }
+  }
 }

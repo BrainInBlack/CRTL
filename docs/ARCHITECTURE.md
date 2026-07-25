@@ -81,6 +81,8 @@ else is built by JS.
 | `icons.bundled.js` | Generated (stays `.js`). The curated Bootstrap Icons set as `{ 'bi:<name>': '<data-uri>' }`. Rebuilt by `scripts/gen-icons.mjs`. |
 | `icon-list.js` | The curated icon name lists that feed `gen-icons` (stays `.js` so the Node script can import it). |
 | `edit.ts` / `modals.ts` / `dnd.ts` | Edit mode: inline group/entry editing, dialogs (entry editor, Global options, help), and drag-and-drop reordering. |
+| `touch.ts` | Is the primary pointer a finger? `(pointer: coarse)` plus a device-local manual override, mirrored onto `body.touch` so CSS and JS switch on one source (see Touch mode below). |
+| `menu.ts` | The anchored context menu - touch's stand-in for the hover-revealed row actions. |
 | `sync.ts` | Encrypted GitHub-gist sync (see below). |
 | `backup.ts` | Passphrase-encrypted config export/import to a local file (see below). |
 | `globals.d.ts` | Ambient `HTMLElement` augmentation for the two ad-hoc element props (`_onClose`, `_hAnim`). |
@@ -103,6 +105,38 @@ Edits persist to `localStorage` immediately but only *mark* the gist dirty;
 revision history stays clean. `persist({ bumpVersion, toGist })` bumps
 `CONFIG.version` (a wall-clock timestamp) on real edits; `saveLocal()` writes
 without a version bump (used to persist the icon cache).
+
+## Touch mode
+
+Detection is capability-based, never device-based. `src/touch.ts` reads
+`(pointer: coarse)` - "the primary pointer is imprecise", the one question a UA
+string cannot answer (iPadOS Safari reports itself as desktop Safari, and a
+touchscreen laptop is neither). Handlers needing finer detail branch on
+`e.pointerType` per event, so a hybrid gets the right behaviour per interaction.
+
+The result lands in three places:
+
+- `isTouch` - a live binding read at call time by `render.ts` / `dnd.ts` /
+  `edit.ts` for the things that are *rendered* rather than styled (grips, the
+  context menu, which element starts a drag).
+- `body.touch` - the CSS switch. Hover cues are authored in pairs
+  (`body:not(.touch) X:hover, body.touch X:active`) because a coarse pointer
+  reports a sticky fake `:hover` on tap that iOS latches until you tap elsewhere.
+- A `touch-mode` window event - `main.ts` re-renders on it, keeping `touch.ts`
+  free of a `state.ts` import cycle.
+
+The **Accessibility** modal exposes an `auto`/`on`/`off` override. It is stored
+under its own `crtl-touch` localStorage key, never in `CONFIG`: the config syncs
+between machines via the gist, and a phone's input mode has no business
+following the user to their desktop. `auto` also re-evaluates mid-session (an
+iPad gaining a trackpad) via the media query's `change` event.
+
+What touch changes: drags start only from a grip (which sets `touch-action:
+none`, so the browser hands the gesture over instead of scrolling) leaving the
+rest of a row free to scroll; edit/delete move from hover-revealed inline icons
+into a context menu on the row; targets grow to ~44px; and the fixed bottom
+chrome pads itself out of the iPhone home indicator with
+`env(safe-area-inset-bottom)` (`viewport-fit=cover` in `index.html`).
 
 ## Home / Away detection
 

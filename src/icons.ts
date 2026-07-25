@@ -111,6 +111,21 @@ export function iconMarkup(icon: string): HTMLSpanElement {
 /** Fixed-UI glyph span for a bundled `bi` name (gear, trash, ...). */
 export const iconSpan = (name: string): HTMLSpanElement => iconEl('bi:' + name);
 
+/* Drag grip: hand-authored rather than `bi:grip-vertical`, which is a 2x5 dot
+   field and reads far too heavy on a row. This is the same dot as the
+   multi-link indicator (bi:three-dots-vertical - r 1.5, 5px pitch, rows at
+   y 3/8/13) in two columns, so a row's grip and its "more links" dots are
+   visibly the same family. Raw markup with single-quoted attrs, matching what
+   gen-icons emits. */
+const GRIP_ICON =
+  "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 16 16'>" +
+  "<circle cx='5.5' cy='3' r='1.5'/><circle cx='10.5' cy='3' r='1.5'/>" +
+  "<circle cx='5.5' cy='8' r='1.5'/><circle cx='10.5' cy='8' r='1.5'/>" +
+  "<circle cx='5.5' cy='13' r='1.5'/><circle cx='10.5' cy='13' r='1.5'/></svg>";
+
+/** Drag-grip span (`.drag-handle` is applied by the caller). */
+export const gripSpan = (): HTMLSpanElement => iconEl(GRIP_ICON);
+
 /** Mask URL for a bundled `bi` name - for filling static [data-bi] chrome icons. */
 export const biUri = (name: string): string => BUNDLED_ICONS['bi:' + name] || biCdnUrl(name);
 
