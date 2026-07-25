@@ -2,14 +2,17 @@
 
 import { CONFIG, editMode, openWrap, setOpenWrap } from './state';
 import { orderLinks, isInternal, probeService, isProbeable } from './probes';
-import { iconMarkup, iconSpan } from './icons';
+import { iconMarkup, iconSpan, gripSpan } from './icons';
 import { openEntryModal } from './modals';
 import { addEntryTo, deleteEntry, addNewGroup, wireGroupEditing } from './edit';
 import { wireGroupDnD } from './dnd';
+import { openContextMenu } from './menu';
+import { isTouch } from './touch';
 import { safeUrl } from './util';
 import type { Entry } from './types';
 
 const LONG_PRESS_MS = 400; // hold duration to open the overlay
+const PRESS_SLOP    = 10;  // px of travel that turns a hold into a scroll/drag
 
 /* ---- slideout overlay (one open at a time) ---- */
 
@@ -38,6 +41,15 @@ function buildEntry(entry: Entry, away: boolean, gi: number, ei: number): HTMLEl
 
   const row = document.createElement('div');
   row.className = 'entry';
+
+  // Touch, in edit mode: a grip at the head of the row is the only thing that
+  // starts a drag, so a finger anywhere else on it still scrolls the page.
+  if (editMode && isTouch) {
+    const grip = gripSpan();
+    grip.classList.add('drag-handle');
+    row.appendChild(grip);
+  }
+
   row.appendChild(iconMarkup(entry.icon));
 
   const nameEl = document.createElement('span');
@@ -110,22 +122,46 @@ function buildEntry(entry: Entry, away: boolean, gi: number, ei: number): HTMLEl
     wrap.appendChild(overlay);
   }
 
-  if (editMode) return wrap; // row is inert in edit mode (drag + buttons only)
+  // Edit mode: the row is inert apart from dragging and its edit affordances.
+  // With a mouse those are the inline icons the row reveals on hover; a finger
+  // has no hover, so touch opens the same two actions as a menu on the row -
+  // the three-dots stay visible in edit mode (CSS) to advertise it.
+  if (editMode) {
+    if (isTouch) {
+      row.addEventListener('click', (e) => {
+        if ((e.target as HTMLElement).closest('.drag-handle')) return;
+        openContextMenu(row, [
+          { label: 'Edit',   icon: 'pencil-fill', onSelect: () => openEntryModal(gi, ei) },
+          { label: 'Delete', icon: 'trash-fill', danger: true, onSelect: () => deleteEntry(gi, ei) }
+        ]);
+      });
+    }
+    return wrap;
+  }
 
   // Click vs long-press via pointer events. (Secondary links are real <a>s in
   // the overlay, so they remain in the natural tab order.)
   let pressTimer: ReturnType<typeof setTimeout> | undefined;
   let longPressed = false;
+  let pressX = 0, pressY = 0;
   const startPress = (e: PointerEvent) => {
     if (e.button !== undefined && e.button !== 0) return;
     longPressed = false;
+    pressX = e.clientX; pressY = e.clientY;
     clearTimeout(pressTimer);
     if (ordered.length > 1) pressTimer = setTimeout(() => { longPressed = true; openSlideout(wrap); }, LONG_PRESS_MS);
+  };
+  // A hold that travels is a scroll (or a drag), not a long press: drop the
+  // timer so starting a touch-scroll on an entry doesn't slide the overlay in.
+  const movePress = (e: PointerEvent) => {
+    if (pressTimer === undefined) return;
+    if (Math.abs(e.clientX - pressX) > PRESS_SLOP || Math.abs(e.clientY - pressY) > PRESS_SLOP) cancelPress();
   };
   const endPress = () => { clearTimeout(pressTimer); pressTimer = undefined; };
   const cancelPress = () => { clearTimeout(pressTimer); pressTimer = undefined; longPressed = false; };
 
   row.addEventListener('pointerdown',   startPress);
+  row.addEventListener('pointermove',   movePress);
   row.addEventListener('pointerup',     endPress);
   row.addEventListener('pointerleave',  cancelPress);
   row.addEventListener('pointercancel', cancelPress);

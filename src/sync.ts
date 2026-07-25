@@ -353,8 +353,11 @@ function showConflictDialog(localVer: number, remoteVer: number): Promise<Confli
     // Escape routes through main.js closeModal -> _onClose; resolve as "Later"
     // so the promise (and conflictOpen) never gets stuck unresolved.
     backdrop._onClose = () => done('later');
+    // No backdrop-click dismissal: this is a three-way decision about which
+    // copy of the config survives, and a stray tap beside the box silently
+    // picking "Later" is not a choice the user made. Escape still routes
+    // through _onClose above, so the promise can't hang.
     backdrop.querySelectorAll<HTMLElement>('[data-act]').forEach(b => b.addEventListener('click', () => done(b.dataset.act as ConflictAction)));
-    backdrop.addEventListener('pointerdown', (e) => { if (e.target === backdrop) done('later'); });
   });
 }
 

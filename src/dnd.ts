@@ -2,6 +2,7 @@
    FLIP reflow animation. Used for entries (within/across groups) and groups. */
 
 import { CONFIG, persist, rerender } from './state';
+import { isTouch } from './touch';
 import type { DragOptions, DragZone, Rect } from './types';
 
 interface DragState {
@@ -10,8 +11,24 @@ interface DragState {
   opts: DragOptions;
   dx: number;
   dy: number;
+  pointerId: number;
 }
 
+/** An armed press that has not become a drag yet. The item only lifts once the
+   pointer travels DRAG_SLOP, so a plain tap picks nothing up - and on touch a
+   press that turns into a page scroll is cancelled by the browser before
+   anything has moved. */
+interface PendingDrag {
+  item: HTMLElement;
+  opts: DragOptions;
+  x: number;
+  y: number;
+  pointerId: number;
+}
+
+const DRAG_SLOP = 5; // px of travel before a press counts as a drag
+
+let pending: PendingDrag | null = null;
 let dragState: DragState | null = null;
 
 const pointInRect = (e: PointerEvent, r: DOMRect) =>
@@ -49,9 +66,33 @@ function resolveGrid(items: HTMLElement[], e: PointerEvent): HTMLElement | null 
   return null;
 }
 
-/** Lift `item` under the cursor; a same-size placeholder takes its slot. */
+/** Arm a drag on `item`: it lifts once the pointer moves past DRAG_SLOP. */
 export function startDrag(e: PointerEvent, item: HTMLElement, opts: DragOptions): void {
   if (e.button !== undefined && e.button !== 0) return;
+  if (pending || dragState) return; // one drag at a time (a second finger is ignored)
+  pending = { item, opts, x: e.clientX, y: e.clientY, pointerId: e.pointerId };
+  document.addEventListener('pointermove', onPendingMove);
+  document.addEventListener('pointerup', clearPending);
+  document.addEventListener('pointercancel', clearPending);
+}
+
+function clearPending(): void {
+  pending = null;
+  document.removeEventListener('pointermove', onPendingMove);
+  document.removeEventListener('pointerup', clearPending);
+  document.removeEventListener('pointercancel', clearPending);
+}
+
+function onPendingMove(e: PointerEvent): void {
+  if (!pending || e.pointerId !== pending.pointerId) return;
+  if (Math.abs(e.clientX - pending.x) < DRAG_SLOP && Math.abs(e.clientY - pending.y) < DRAG_SLOP) return;
+  const { item, opts } = pending;
+  clearPending();
+  lift(e, item, opts);
+}
+
+/** Lift `item` under the cursor; a same-size placeholder takes its slot. */
+function lift(e: PointerEvent, item: HTMLElement, opts: DragOptions): void {
   e.preventDefault();
 
   const rect = item.getBoundingClientRect();
@@ -70,13 +111,20 @@ export function startDrag(e: PointerEvent, item: HTMLElement, opts: DragOptions)
     margin: '0', pointerEvents: 'none'
   });
 
-  dragState = { item, placeholder, opts, dx: e.clientX - rect.left, dy: e.clientY - rect.top };
+  dragState = { item, placeholder, opts, dx: e.clientX - rect.left, dy: e.clientY - rect.top, pointerId: e.pointerId };
   document.addEventListener('pointermove', onDragMove);
-  document.addEventListener('pointerup', onDragEnd, { once: true });
+  document.addEventListener('pointerup', onDragEnd);
+  document.addEventListener('pointercancel', onDragCancel);
+}
+
+function detachDrag(): void {
+  document.removeEventListener('pointermove', onDragMove);
+  document.removeEventListener('pointerup', onDragEnd);
+  document.removeEventListener('pointercancel', onDragCancel);
 }
 
 function onDragMove(e: PointerEvent): void {
-  if (!dragState) return;
+  if (!dragState || e.pointerId !== dragState.pointerId) return;
   e.preventDefault();
   const { item, placeholder, opts, dx, dy } = dragState;
 
@@ -143,12 +191,28 @@ function flipReorder(mutate: () => void): void {
   });
 }
 
-function onDragEnd(): void {
-  if (!dragState) return;
+function onDragEnd(e: PointerEvent): void {
+  if (!dragState || e.pointerId !== dragState.pointerId) return;
   const { item, placeholder, opts } = dragState;
-  document.removeEventListener('pointermove', onDragMove);
+  detachDrag();
   opts.onCommit(item, placeholder); // commits, then re-renders away the floats
   dragState = null;
+}
+
+/**
+ * The browser took the gesture over (a touch that became a page scroll) or the
+ * pointer was otherwise lost. Put everything back where it was: without this
+ * the item stays lifted (position: fixed) next to an orphan placeholder, and
+ * dragState never clears - no further drag can start.
+ */
+function onDragCancel(e: PointerEvent): void {
+  if (!dragState || e.pointerId !== dragState.pointerId) return;
+  const { item, placeholder } = dragState;
+  detachDrag();
+  flipReorder(() => placeholder.remove()); // ease the gap closed (reads dragState)
+  dragState = null;
+  item.classList.remove('dragging');
+  item.removeAttribute('style'); // the item never moved in the DOM - only its styling did
 }
 
 /* ---- wiring + commits ---- */
@@ -158,8 +222,13 @@ export function wireEntryDnD(groupDiv: HTMLElement): void {
   groupDiv.querySelectorAll<HTMLElement>(':scope .entry-wrap').forEach(wrap => {
     const row = wrap.querySelector<HTMLElement>('.entry');
     if (!row) return;
-    row.addEventListener('pointerdown', (e) => {
-      if ((e.target as HTMLElement).closest('.entry-actions')) return; // leave buttons clickable
+    // A mouse grabs the row anywhere; a finger grabs the grip only, leaving the
+    // rest of the row free to scroll the page (the grip opts out via
+    // touch-action, so the browser hands the gesture over instead of scrolling).
+    const from = isTouch ? wrap.querySelector<HTMLElement>('.drag-handle') : row;
+    if (!from) return;
+    from.addEventListener('pointerdown', (e) => {
+      if (!isTouch && (e.target as HTMLElement).closest('.entry-actions')) return; // leave buttons clickable
       startDrag(e, wrap, {
         resolve: resolveY,
         getZones: () => [...document.querySelectorAll<HTMLElement>('.group .entries')].map(c => ({
@@ -185,13 +254,16 @@ function commitEntryMove(wrap: HTMLElement, placeholder: HTMLElement): void {
   rerender();
 }
 
-/** Groups - draggable in the grid; the whole header is the handle. */
+/** Groups - draggable in the grid; the whole header is the handle (grip on touch). */
 export function wireGroupDnD(): void {
   document.querySelectorAll<HTMLElement>('#container > .group').forEach(g => {
     const header = g.querySelector<HTMLElement>('.group-header');
     if (!header) return;
-    header.addEventListener('pointerdown', (e) => {
-      if ((e.target as HTMLElement).closest('.group-title') || (e.target as HTMLElement).closest('.group-delete')) return;
+    const from = isTouch ? header.querySelector<HTMLElement>('.drag-handle') : header;
+    if (!from) return;
+    from.addEventListener('pointerdown', (e) => {
+      const t = e.target as HTMLElement;
+      if (!isTouch && (t.closest('.group-title') || t.closest('.group-delete'))) return;
       startDrag(e, g, {
         resolve: resolveGrid,
         getZones: () => [{

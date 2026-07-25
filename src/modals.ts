@@ -1,7 +1,7 @@
 /* Modals: entry editor, global options (probes + encrypted sync), help. */
 
 import { CONFIG, persist, flushGist, rerender, importing, setImporting } from './state';
-import { embedIcon, iconEl, pruneIconCache, findBrandSets } from './icons';
+import { embedIcon, iconEl, gripSpan, pruneIconCache, findBrandSets } from './icons';
 import { BI_ICONS } from './icon-list';
 import {
   getSync, setSync, exportSyncBlob, importSyncBlob,
@@ -10,6 +10,7 @@ import {
 import { exportBackup, importBackup, downloadBackup, backupCryptoAvailable, MAX_BACKUP_BYTES } from './backup';
 import { recheckLocation } from './location';
 import { startDrag, resolveY } from './dnd';
+import { isTouch, getTouchMode, setTouchMode, type TouchMode } from './touch';
 import { errMsg, safeUrl } from './util';
 import { APP_VERSION, IS_WEB } from './build';
 import type { Link } from './types';
@@ -18,7 +19,13 @@ const REPO_URL = 'https://github.com/BrainInBlack/CRTL';
 
 /* ---- scaffold ---- */
 
-function buildModal(title: string): { backdrop: HTMLElement; body: HTMLElement; foot: HTMLElement } {
+/**
+ * Modal scaffold. A click on the backdrop does *not* dismiss by default: these
+ * dialogs hold unsaved edits (entry, options) or a decision that has to be
+ * made, and losing them to a stray tap next to the box is the worst outcome
+ * available. `dismissOnBackdrop` opts a read-only dialog (help) back in.
+ */
+function buildModal(title: string, { dismissOnBackdrop = false } = {}): { backdrop: HTMLElement; body: HTMLElement; foot: HTMLElement } {
   const backdrop = document.createElement('div');
   backdrop.className = 'modal-backdrop';
   const modal = document.createElement('div'); modal.className = 'modal';
@@ -28,7 +35,9 @@ function buildModal(title: string): { backdrop: HTMLElement; body: HTMLElement; 
   modal.append(head, body, foot);
   backdrop.appendChild(modal);
   document.body.appendChild(backdrop);
-  backdrop.addEventListener('pointerdown', (e) => { if (e.target === backdrop) closeModal(backdrop); });
+  if (dismissOnBackdrop) {
+    backdrop.addEventListener('pointerdown', (e) => { if (e.target === backdrop) closeModal(backdrop); });
+  }
   requestAnimationFrame(() => backdrop.classList.add('open'));
   return { backdrop, body, foot };
 }
@@ -153,7 +162,8 @@ export function openEntryModal(gi: number, ei: number, isNew?: boolean): void {
   const checkField = document.createElement('div'); checkField.className = 'field';
   const cr = document.createElement('label'); cr.className = 'check-row';
   const cb = document.createElement('input'); cb.type = 'checkbox'; cb.checked = !!entry.check;
-  cr.append(cb, document.createTextNode(' Show health dot (periodic probe)'));
+  const crText = document.createElement('span'); crText.textContent = 'Show health dot (periodic probe)';
+  cr.append(cb, crText);
   checkField.appendChild(cr);
   body.appendChild(checkField);
 
@@ -185,7 +195,7 @@ export function openEntryModal(gi: number, ei: number, isNew?: boolean): void {
   function addLinkRow(link?: Link): void {
     link = link || { label: '', url: '' };
     const row = document.createElement('div'); row.className = 'link-row';
-    const h = iconEl('bi:grip-vertical'); h.classList.add('drag-handle');
+    const h = gripSpan(); h.classList.add('drag-handle');
     const lbl = document.createElement('input'); lbl.type = 'text'; lbl.placeholder = 'Label'; lbl.className = 'lbl'; lbl.value = link.label || '';
     const url = document.createElement('input'); url.type = 'text'; url.placeholder = 'service.example.com'; url.className = 'url';
     url.value = (link.url || '').replace(/^https:\/\//i, ''); // hide only the default scheme; http:// stays visible
@@ -487,18 +497,19 @@ export function openA11yModal(): void {
   const { backdrop, body, foot } = buildModal('Accessibility');
 
   const intro = document.createElement('div'); intro.className = 'hint'; intro.style.marginBottom = '14px';
-  intro.textContent = 'Options to make CRTL easier to read. Changes apply immediately.';
+  intro.textContent = 'Options to make CRTL easier to read and use. Changes apply immediately.';
   body.appendChild(intro);
 
   // Colour-blind friendly health dots.
   const cbField = document.createElement('div'); cbField.className = 'field';
+  const cbLabel = document.createElement('label'); cbLabel.textContent = 'Health dots';
   const cbRow = document.createElement('label'); cbRow.className = 'check-row';
   const cbInput = document.createElement('input'); cbInput.type = 'checkbox'; cbInput.checked = !!CONFIG.colorBlind;
-  cbRow.append(cbInput, document.createTextNode(' Colour-blind friendly health dots (check / cross marks)'));
-  cbField.appendChild(cbRow);
+  const cbText = document.createElement('span'); cbText.textContent = 'Colour-blind friendly (check / cross marks)';
+  cbRow.append(cbInput, cbText);
   const cbHint = document.createElement('div'); cbHint.className = 'hint';
   cbHint.textContent = 'Resolved health dots show a check (up) or cross (down) glyph, not colour alone.';
-  cbField.appendChild(cbHint);
+  cbField.append(cbLabel, cbRow, cbHint);
   body.appendChild(cbField);
 
   cbInput.addEventListener('change', () => {
@@ -508,6 +519,24 @@ export function openA11yModal(): void {
     rerender();     // re-mount the dots in the new mode
   });
 
+  // Touch mode. Unlike everything else in here this is device-local (see
+  // touch.ts): CONFIG travels between machines via the gist, and a phone's
+  // input setting has no business following the user to their desktop.
+  const tmField = document.createElement('div'); tmField.className = 'field';
+  const tmLabel = document.createElement('label'); tmLabel.textContent = 'Touch mode';
+  const tmSelect = document.createElement('select');
+  ([['auto', 'Auto - follow this device'], ['on', 'Always on'], ['off', 'Always off']] as const)
+    .forEach(([value, text]) => {
+      const o = document.createElement('option'); o.value = value; o.textContent = text;
+      tmSelect.appendChild(o);
+    });
+  tmSelect.value = getTouchMode();
+  tmSelect.addEventListener('change', () => setTouchMode(tmSelect.value as TouchMode));
+  const tmHint = document.createElement('div'); tmHint.className = 'hint';
+  tmHint.textContent = 'Bigger targets, drag grips in edit mode, and edit / delete in a menu instead of hover-only icons. Auto follows the pointer this device reports. Kept on this device - never synced.';
+  tmField.append(tmLabel, tmSelect, tmHint);
+  body.appendChild(tmField);
+
   const close = document.createElement('button'); close.className = 'btn primary'; close.textContent = 'Close';
   close.addEventListener('click', () => closeModal(backdrop));
   foot.append(close);
@@ -516,7 +545,7 @@ export function openA11yModal(): void {
 /* ---- help ---- */
 
 export function openHelpModal(): void {
-  const { backdrop, foot, body } = buildModal('Help');
+  const { body } = buildModal('Help', { dismissOnBackdrop: true }); // read-only, nothing to lose
 
   // On the hosted build, browsers can't probe the http LAN over https, so
   // auto-detect is replaced by a manual toggle. Explain it and point at the
@@ -532,19 +561,29 @@ export function openHelpModal(): void {
       <p>Want full auto Home / Away and health dots? Open the <b>gear</b> and choose <b>Download offline version</b> - a single self-contained file that runs from <code>file://</code>.</p>
     </div>` : '';
 
+  // The gestures differ by input, so the instructions do too (see touch.ts).
+  const Tap = isTouch ? 'Tap' : 'Click';
+  const tap = Tap.toLowerCase();
+  const reorder = isTouch
+    ? 'Drag a row or group header by its <b>grip</b> to reorder; drop an entry in another group to move it.'
+    : 'Drag group headers or entries to reorder; drop an entry in another group to move it.';
+  const rowActions = isTouch
+    ? `<b>Tap</b> an entry for <b>edit</b> / <b>delete</b>`
+    : `<b>Hover</b> an entry to <b>edit</b> or <b>delete</b> it`;
+
   body.innerHTML = `
     <div class="help-section">
       <h4>Using the dashboard</h4>
-      <p><b>Click</b> an entry to open its main link.</p>
+      <p><b>${Tap}</b> an entry to open its main link.</p>
       <p><b>Long-press</b> (or tap the dots) to reveal all of an entry's links.</p>
-      <p>The <b>Home / Away</b> pill (top-right) auto-detects your location; click to cycle <b>lock -> switch -> auto</b>. Away shows public links first and dims home-only entries. Dots: green up, amber down - or check / cross marks with the colour-blind option in the <b>Accessibility</b> menu (bottom-left).</p>
+      <p>The <b>Home / Away</b> pill (top-right) auto-detects your location; ${tap} to cycle <b>lock -> switch -> auto</b>. Away shows public links first and dims home-only entries. Dots: green up, amber down - or check / cross marks with the colour-blind option in the <b>Accessibility</b> menu (bottom-left).</p>
     </div>
     ${webNote}
     <div class="help-section">
       <h4>Editing</h4>
       <p>Open the <b>gear</b> (bottom-right) -> <b>Edit mode</b>.</p>
-      <p>Drag group headers or entries to reorder; drop an entry in another group to move it.</p>
-      <p>Hover an entry to <b>edit</b> or <b>delete</b> it, click a group title to rename, and use <b>+</b> to add entries or groups.</p>
+      <p>${reorder}</p>
+      <p>${rowActions}, ${tap} a group title to rename, and use <b>+</b> to add entries or groups.</p>
       <p>Icons: <code>bi:name</code> (<a href="https://icons.getbootstrap.com" target="_blank" rel="noopener noreferrer">Bootstrap</a>) or <code>svg:name</code> (<a href="https://superdevpro.com/brands" target="_blank" rel="noopener noreferrer">brand</a>); uncurated ones fetch once from a CDN.</p>
     </div>
     <div class="help-section">
@@ -554,7 +593,7 @@ export function openHelpModal(): void {
     </div>
     <div class="help-about">CRTL v${APP_VERSION} <span>(${IS_WEB ? 'web' : 'local'} build)</span></div>
   `;
-  const close = document.createElement('button'); close.className = 'btn primary'; close.textContent = 'Close';
-  close.addEventListener('click', () => closeModal(backdrop));
-  foot.append(close);
+  // No Close button: help is the one dialog you can dismiss by clicking beside
+  // it (or with Escape), so the footer would be a bar with one redundant
+  // control. An empty .modal-footer hides itself.
 }

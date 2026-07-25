@@ -7,8 +7,46 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.3.0] - 2026-07-25
+
+### Added
+
+- **Touch mode.** On a phone or tablet CRTL now adapts instead of asking for
+  mouse gestures a finger can't make: edit mode gives every entry and group
+  header a drag grip (the rest of the row stays free to scroll the page),
+  edit / delete open as a menu on the row rather than icons that only appear on
+  hover, buttons grow to a thumb-sized target, and the bottom corner buttons
+  keep clear of the iPhone home indicator.
+- Detection is automatic - it follows the pointer the device reports, and
+  re-checks when that changes (an iPad gaining a trackpad). **Accessibility**
+  has an override if the guess is wrong; it stays on the device and is never
+  synced.
+
+### Changed
+
+- **Dialogs no longer close when you click beside them.** The entry editor,
+  Global options, Accessibility and the sync-conflict prompt hold unsaved edits
+  or a decision that has to be made, and a stray click next to the box used to
+  discard them. Close them with their buttons or Escape. Help still closes on
+  an outside click (there is nothing to lose), as do the gear and context
+  menus.
+- Checkboxes are themed to match the panel instead of using the browser's
+  default control, and their labels now read as labels rather than as a field
+  heading. The Accessibility options each got a heading, and touch mode moved
+  below the colour-blind option.
+- Help lost its Close button - click outside it or press Escape.
+
 ### Fixed
 
+- Drag-and-drop no longer gets stuck when the browser takes the gesture over.
+  A touch that turned into a page scroll left the dragged entry (or group)
+  floating over the page next to an orphan placeholder, and blocked every
+  later drag; a cancelled drag now puts everything back.
+- Dragging only starts after the pointer travels a few pixels, so a tap or a
+  click on an entry's edit / delete buttons can no longer lift the row by
+  accident.
+- A long-press that travels is treated as a scroll: starting a touch-scroll on
+  an entry no longer slides its links overlay in.
 - Opening a link's primary target no longer leaks the CRTL page URL: the
   single-tap `window.open` now sets `noreferrer` alongside `noopener`, so no
   `Referer` header is sent. Overlay (secondary) links already stripped it.
@@ -137,5 +175,9 @@ Initial public release. Everything below describes the app as it ships at 1.0.0.
 - Icon strings are escaped before interpolation into the `url("...")` CSS mask,
   so a crafted `data:` icon can't break out of the `--icon` custom property.
 
-[Unreleased]: https://github.com/BrainInBlack/CRTL/compare/v1.0.0...HEAD
+[Unreleased]: https://github.com/BrainInBlack/CRTL/compare/v1.3.0...HEAD
+[1.3.0]: https://github.com/BrainInBlack/CRTL/compare/v1.2.1...v1.3.0
+[1.2.1]: https://github.com/BrainInBlack/CRTL/compare/v1.2.0...v1.2.1
+[1.2.0]: https://github.com/BrainInBlack/CRTL/compare/v1.0.1...v1.2.0
+[1.0.1]: https://github.com/BrainInBlack/CRTL/compare/v1.0.0...v1.0.1
 [1.0.0]: https://github.com/BrainInBlack/CRTL/releases/tag/v1.0.0

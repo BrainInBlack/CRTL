@@ -2,7 +2,10 @@
 <html lang="en">
 <head>
 	<meta charset="UTF-8">
-	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<!-- viewport-fit=cover lets the page use the full screen on a notched phone;
+	     the fixed bottom chrome pads itself back out of the home indicator with
+	     env(safe-area-inset-bottom) (see styles.css). -->
+	<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 	<title>CRTL</title>
 
 	<!-- Social / link-unfurl metadata. og:image is served from GitHub raw so it

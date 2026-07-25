@@ -26,6 +26,10 @@ dependencies and works fully offline. Open it in a browser and you're done.
   down). Toggle it per entry in the editor.
 - **A pill in the top-right** shows the current location state and lets you
   flip it manually.
+- **Touch-aware.** On a phone or tablet the UI switches to finger-sized
+  targets, drag grips for reordering, and a menu for edit / delete instead of
+  icons that only show on hover. It follows the pointer your device reports;
+  **Accessibility** (bottom-left) can force it either way, per device.
 
 No tracking, no analytics, no telemetry. On a normal load the only network
 calls are the Home/Away and health probes you configure - fonts and curated

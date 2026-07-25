@@ -4,7 +4,8 @@ import { CONFIG, persist, flushGist, rerender, isAway, setEditModeFlag, importin
 import { render, closeSlideout } from './render';
 import { flipElement, wireEntryDnD } from './dnd';
 import { openEntryModal } from './modals';
-import { pruneIconCache, iconSpan } from './icons';
+import { pruneIconCache, iconSpan, gripSpan } from './icons';
+import { isTouch } from './touch';
 
 export function setEditMode(on: boolean): void {
   // Editing is locked while a gist import is in flight.
@@ -72,12 +73,22 @@ export function wireGroupEditing(groupDiv: HTMLElement, gi: number): void {
     if (CONFIG.groups[gi].group !== v) { CONFIG.groups[gi].group = v; persist(); }
   });
 
+  const header = groupDiv.querySelector('.group-header')!;
   const del = document.createElement('span');
   del.className = 'group-delete';
   del.title = 'Delete group';
   del.appendChild(iconSpan('trash-fill'));
   del.addEventListener('click', () => deleteGroup(gi));
-  groupDiv.querySelector('.group-header')!.appendChild(del);
+  header.appendChild(del);
+
+  // Touch drags the group by its grip, not the whole header - the header holds
+  // the tappable title and delete button, and the page still has to scroll.
+  // It leads the header, matching the grip on each entry row.
+  if (isTouch) {
+    const grip = gripSpan();
+    grip.classList.add('drag-handle');
+    header.insertBefore(grip, header.firstChild);
+  }
 
   wireEntryDnD(groupDiv);
 }

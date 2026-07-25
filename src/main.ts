@@ -10,6 +10,7 @@ import { IS_WEB } from './build';
 import { closeSlideout, runServiceProbes } from './render';
 import { setEditMode } from './edit';
 import { openOptionsModal, openHelpModal, openA11yModal, closeModal } from './modals';
+import { closeContextMenu } from './menu';
 import { setState, recheckLocation } from './location';
 import { probeHome, canAutoDetect } from './probes';
 import { syncFromGist, importFromGist, isSyncReady, getSync, getSyncError } from './sync';
@@ -104,8 +105,14 @@ document.addEventListener('keydown', (e) => {
   const m = document.querySelector<HTMLElement>('.modal-backdrop.open');
   if (m) closeModal(m);
   gearMenu.classList.remove('open');
+  closeContextMenu();
   closeSlideout();
 });
+
+// Touch affordances (drag grips, the context menu) are rendered, not just
+// styled, so a mode change - the manual override, or an iPad gaining a
+// trackpad - has to repaint.
+window.addEventListener('touch-mode', rerender);
 
 /* ---- startup ---- */
 
