@@ -112,7 +112,7 @@ export function openEntryModal(gi: number, ei: number, isNew?: boolean): void {
   iconField.appendChild(picker);
 
   const iconHint = document.createElement('div'); iconHint.className = 'hint';
-  iconHint.innerHTML = 'Use <code>bi:name</code> for <a href="https://icons.getbootstrap.com" target="_blank" rel="noopener noreferrer">Bootstrap Icons</a> or <code>svg:name</code> for <a href="https://superdevpro.com/brands" target="_blank" rel="noopener noreferrer">brand icons</a>. Curated icons are built in; <b>any other name is fetched once from a CDN on save</b> and then embedded.';
+  iconHint.innerHTML = 'Use <code>bi:name</code> for <a href="https://icons.getbootstrap.com" target="_blank" rel="noopener noreferrer">Bootstrap Icons</a> or <code>svg:name</code> for <a href="https://simpleicons.org" target="_blank" rel="noopener noreferrer">brand icons</a>. Curated icons are built in; <b>any other name is fetched once from a CDN on save</b> and then embedded.';
   iconField.appendChild(iconHint);
   body.appendChild(iconField);
 
@@ -584,7 +584,7 @@ export function openHelpModal(): void {
       <p>Open the <b>gear</b> (bottom-right) -> <b>Edit mode</b>.</p>
       <p>${reorder}</p>
       <p>${rowActions}, ${tap} a group title to rename, and use <b>+</b> to add entries or groups.</p>
-      <p>Icons: <code>bi:name</code> (<a href="https://icons.getbootstrap.com" target="_blank" rel="noopener noreferrer">Bootstrap</a>) or <code>svg:name</code> (<a href="https://superdevpro.com/brands" target="_blank" rel="noopener noreferrer">brand</a>); uncurated ones fetch once from a CDN.</p>
+      <p>Icons: <code>bi:name</code> (<a href="https://icons.getbootstrap.com" target="_blank" rel="noopener noreferrer">Bootstrap</a>) or <code>svg:name</code> (<a href="https://simpleicons.org" target="_blank" rel="noopener noreferrer">brand</a>); uncurated ones fetch once from a CDN.</p>
     </div>
     <div class="help-section">
       <h4>Sync &amp; backup</h4>
