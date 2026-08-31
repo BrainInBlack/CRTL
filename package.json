@@ -45,7 +45,7 @@
   },
   "devDependencies": {
     "bootstrap-icons": "^1.13.1",
-    "happy-dom": "^20.11.6",
+    "happy-dom": "^20.11.13",
     "typescript": "~7.0.2",
     "vite": "^8.2.2",
     "vite-plugin-singlefile": "^2.3.3",
