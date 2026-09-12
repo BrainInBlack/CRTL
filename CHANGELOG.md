@@ -7,11 +7,42 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.3.1] - 2026-09-12
+
+### Changed
+
+- **Updated the build and test tooling** - `vite` 8.1.5 -> 8.3.0, `happy-dom`
+  20.11.0 -> 20.14.5, and `vitest` 4.1.9 -> 5.0.0 (a major bump; the test setup
+  now installs its in-memory `localStorage` with `defineProperty`, because
+  vitest 5's happy-dom environment defines that property with only a getter and
+  a plain assignment throws). None of this ships in CRTL - the built app is
+  unchanged.
+
 ### Fixed
 
 - The **brand icons** link in the entry editor and Help pointed at a page that
   no longer exists (`superdevpro.com/brands`); both now go to
   [Simple Icons](https://simpleicons.org), the set `svg:` names resolve against.
+
+### Security
+
+- **Cleared four dependency advisories.** All four are in **development**-only
+  packages that run while building or testing CRTL and are never part of the
+  shipped page, so none of them were exploitable against users - this clears
+  the alerts rather than fixing a live hole:
+  - `nanoid` (high) -
+    [CVE-2026-67213](https://nvd.nist.gov/vuln/detail/CVE-2026-67213): custom
+    generators could loop indefinitely when the size is zero.
+  - `postcss` (medium) -
+    [CVE-2026-69153](https://nvd.nist.gov/vuln/detail/CVE-2026-69153): an
+    attacker-controlled `sourceMappingURL` could read arbitrary `.map` files
+    when `from` is unset.
+  - `vitest` / `@vitest/mocker` (medium) -
+    [CVE-2026-84373](https://nvd.nist.gov/vuln/detail/CVE-2026-84373):
+    a redirect mock's target was not validated against the dev server's
+    file-serving allow-list, so an arbitrary local file could be read through
+    the unauthenticated `mockerPlugin` export. CRTL uses neither browser mode
+    nor a public dev server.
 
 ## [1.3.0] - 2026-07-25
 
@@ -181,7 +212,8 @@ Initial public release. Everything below describes the app as it ships at 1.0.0.
 - Icon strings are escaped before interpolation into the `url("...")` CSS mask,
   so a crafted `data:` icon can't break out of the `--icon` custom property.
 
-[Unreleased]: https://github.com/BrainInBlack/CRTL/compare/v1.3.0...HEAD
+[Unreleased]: https://github.com/BrainInBlack/CRTL/compare/v1.3.1...HEAD
+[1.3.1]: https://github.com/BrainInBlack/CRTL/compare/v1.3.0...v1.3.1
 [1.3.0]: https://github.com/BrainInBlack/CRTL/compare/v1.2.1...v1.3.0
 [1.2.1]: https://github.com/BrainInBlack/CRTL/compare/v1.2.0...v1.2.1
 [1.2.0]: https://github.com/BrainInBlack/CRTL/compare/v1.0.1...v1.2.0
