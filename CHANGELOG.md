@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- The **brand icons** link in the entry editor and Help pointed at a page that
+  no longer exists (`superdevpro.com/brands`); both now go to
+  [Simple Icons](https://simpleicons.org), the set `svg:` names resolve against.
+
 ## [1.3.0] - 2026-07-25
 
 ### Added
