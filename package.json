@@ -1,7 +1,7 @@
 {
   "name": "crtl",
   "private": true,
-  "version": "1.3.1",
+  "version": "1.3.2",
   "description": "Phosphor/CRT homelab dashboard. Source is modular under src/; `npm run build` inlines it into the single self-contained CRTL.html. Vite dev is a live preview.",
   "license": "SEE LICENSE IN LICENSE",
   "author": "BrainInBlack <braininblack@gmail.com>",
@@ -28,7 +28,7 @@
   ],
   "type": "module",
   "engines": {
-    "node": ">=24"
+    "node": ">=26"
   },
   "scripts": {
     "dev": "vite",
@@ -49,7 +49,7 @@
     "typescript": "~7.0.2",
     "vite": "^8.3.0",
     "vite-plugin-singlefile": "^2.3.3",
-    "vitest": "^5.0.0"
+    "vitest": "^5.0.1"
   },
   "dependencies": {
     "@fontsource/orbitron": "^5.3.0"
