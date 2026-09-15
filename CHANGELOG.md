@@ -7,6 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.3.2] - 2026-09-15
+
+### Changed
+
+- **Building CRTL now needs Node 26** - `engines` goes from `>=24` to `>=26`, and
+  CI runs on Node 26 instead of 24. This only matters if you build or work on
+  CRTL from source; on an older Node, `npm install` warns about the unsupported
+  engine.
+- **Updated the test tooling** - `vitest` 5.0.0 -> 5.0.1. None of this ships in
+  CRTL - the built app is unchanged.
+
 ## [1.3.1] - 2026-09-12
 
 ### Changed
@@ -212,7 +223,8 @@ Initial public release. Everything below describes the app as it ships at 1.0.0.
 - Icon strings are escaped before interpolation into the `url("...")` CSS mask,
   so a crafted `data:` icon can't break out of the `--icon` custom property.
 
-[Unreleased]: https://github.com/BrainInBlack/CRTL/compare/v1.3.1...HEAD
+[Unreleased]: https://github.com/BrainInBlack/CRTL/compare/v1.3.2...HEAD
+[1.3.2]: https://github.com/BrainInBlack/CRTL/compare/v1.3.1...v1.3.2
 [1.3.1]: https://github.com/BrainInBlack/CRTL/compare/v1.3.0...v1.3.1
 [1.3.0]: https://github.com/BrainInBlack/CRTL/compare/v1.2.1...v1.3.0
 [1.2.1]: https://github.com/BrainInBlack/CRTL/compare/v1.2.0...v1.2.1
