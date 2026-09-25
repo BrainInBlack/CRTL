@@ -283,6 +283,19 @@ export function openOptionsModal(): void {
   pf.innerHTML = '<label>Home-detection probes (one URL per line)</label>';
   const probesTa = document.createElement('textarea'); probesTa.value = (CONFIG.homeProbes || []).join('\n');
   pf.appendChild(probesTa);
+  // Save writes this field back to CONFIG, so it must never go stale: an
+  // import (setup blob, backup, background gist pull) can replace the probes
+  // while the modal is open, and a stale field would then overwrite them - and
+  // push the old list to the gist. Follow each adopt unless the user has
+  // edited the field; an import they start themselves always wins.
+  let probesEdited = false;
+  probesTa.addEventListener('input', () => { probesEdited = true; });
+  const syncProbesField = (force = false) => {
+    if (probesEdited && !force) return;
+    probesTa.value = (CONFIG.homeProbes || []).join('\n');
+    probesEdited = false;
+  };
+  const onAdopted = () => syncProbesField();
   const ph = document.createElement('div'); ph.className = 'hint';
   ph.textContent = 'Endpoints reachable only on your home network. If any responds, you are Home.';
   pf.appendChild(ph);
@@ -349,7 +362,11 @@ export function openOptionsModal(): void {
   refreshSyncUI();
   // Reflect background sync failures/recoveries live while the modal is open.
   window.addEventListener('sync-status', refreshSyncUI);
-  backdrop._onClose = () => window.removeEventListener('sync-status', refreshSyncUI);
+  window.addEventListener('config-adopted', onAdopted);
+  backdrop._onClose = () => {
+    window.removeEventListener('sync-status', refreshSyncUI);
+    window.removeEventListener('config-adopted', onAdopted);
+  };
 
   toggle.addEventListener('click', async () => {
     if (importing) { alert('Another import is already running - try again in a moment.'); return; }
@@ -392,6 +409,7 @@ export function openOptionsModal(): void {
       const s = importSyncBlob(blobTa.value);
       patF.input.value = s.pat; idF.input.value = s.gistId; keyF.input.value = s.key;
       await importFromGist();   // force-pull the gist + unlock writes on this machine
+      syncProbesField(true);    // the gist's probes replace whatever the field held
       refreshSyncUI();
     } catch (err) { alert('Import failed: ' + errMsg(err)); }
   });
@@ -464,8 +482,7 @@ export function openOptionsModal(): void {
         onIconProgress: (done, total) => { importFileBtn.textContent = total ? `Icons ${done}/${total}...` : 'Icons...'; },
         finalize: persist
       });
-      probesTa.value = (CONFIG.homeProbes || []).join('\n'); // keep the open modal in sync
-      recheckLocation();                       // probes may have changed
+      syncProbesField(true);                   // the backup's probes replace the field
       bkStatus.textContent = 'Backup imported.';
     } catch (err) {
       alert('Import failed: ' + errMsg(err));
@@ -584,6 +601,7 @@ export function openHelpModal(): void {
       <p>Open the <b>gear</b> (bottom-right) -> <b>Edit mode</b>.</p>
       <p>${reorder}</p>
       <p>${rowActions}, ${tap} a group title to rename, and use <b>+</b> to add entries or groups.</p>
+      <p>The arrows in a group's header make it <b>double width</b> or <b>double height</b> - one at a time, on screens wide enough for two columns.</p>
       <p>Icons: <code>bi:name</code> (<a href="https://icons.getbootstrap.com" target="_blank" rel="noopener noreferrer">Bootstrap</a>) or <code>svg:name</code> (<a href="https://simpleicons.org" target="_blank" rel="noopener noreferrer">brand</a>); uncurated ones fetch once from a CDN.</p>
     </div>
     <div class="help-section">

@@ -100,7 +100,11 @@ function lift(e: PointerEvent, item: HTMLElement, opts: DragOptions): void {
   placeholder.className = 'drag-placeholder';
   placeholder.style.width = rect.width + 'px';
   placeholder.style.height = rect.height + 'px';
-  placeholder.style.margin = getComputedStyle(item).margin;
+  const cs = getComputedStyle(item);
+  placeholder.style.margin = cs.margin;
+  // A double-size group keeps its span, so the placeholder holds the same cells.
+  placeholder.style.gridColumn = `${cs.gridColumnStart} / ${cs.gridColumnEnd}`;
+  placeholder.style.gridRow = `${cs.gridRowStart} / ${cs.gridRowEnd}`;
   item.parentNode!.insertBefore(placeholder, item);
 
   item.classList.add('dragging');
@@ -135,7 +139,7 @@ function onDragMove(e: PointerEvent): void {
   const zone = zones.find(z => pointInRect(e, z.container.getBoundingClientRect())) || nearestZone(zones, e);
   if (!zone) return;
   const items = zone.items.filter(it => it !== item && it !== placeholder);
-  const before = opts.resolve(items, e);
+  const before = opts.resolve(items, e, zone.container);
   // Trailing "add" affordance counts as the end, so dropping last lands above it.
   const ref = before || zone.container.querySelector(':scope > .add-entry, :scope > .add-group') || null;
 
@@ -152,10 +156,11 @@ const FLIP_MS = 160;
 
 /**
  * Animate `el` from captured rect `f` to its current geometry: position via a
- * transform transition; group height via the Web Animations API (a CSS height
- * transition would be wiped by the next move's transform reset).
+ * transform transition; group size (a height change, or a span toggle's width)
+ * via the Web Animations API (a CSS size transition would be wiped by the next
+ * move's transform reset).
  */
-export function flipElement(el: HTMLElement, f: Rect, animateHeight?: boolean): void {
+export function flipElement(el: HTMLElement, f: Rect, animateSize?: boolean): void {
   const r = el.getBoundingClientRect();
   const ox = f.left - r.left, oy = f.top - r.top;
   if (ox || oy) {
@@ -165,13 +170,13 @@ export function flipElement(el: HTMLElement, f: Rect, animateHeight?: boolean): 
     el.style.transition = `transform ${FLIP_MS}ms ease`;
     el.style.transform = '';
   }
-  if (animateHeight && Math.abs(f.height - r.height) > 0.5) {
+  if (animateSize && (Math.abs(f.height - r.height) > 0.5 || Math.abs(f.width - r.width) > 0.5)) {
     el.style.overflow = 'hidden';
-    el._hAnim = el.animate(
-      [{ height: f.height + 'px' }, { height: r.height + 'px' }],
+    el._sizeAnim = el.animate(
+      [{ width: f.width + 'px', height: f.height + 'px' }, { width: r.width + 'px', height: r.height + 'px' }],
       { duration: FLIP_MS, easing: 'ease' }
     );
-    el._hAnim.onfinish = el._hAnim.oncancel = () => { el.style.overflow = ''; };
+    el._sizeAnim.onfinish = el._sizeAnim.oncancel = () => { el.style.overflow = ''; };
   }
 }
 
@@ -181,12 +186,12 @@ function flipReorder(mutate: () => void): void {
   const els = [...document.querySelectorAll<HTMLElement>('#container > .group, .entry-wrap, .drag-placeholder')]
     .filter(el => el !== ds.item);
   const first = new Map<HTMLElement, Rect>();
-  els.forEach(el => { const r = el.getBoundingClientRect(); first.set(el, { left: r.left, top: r.top, height: r.height }); });
+  els.forEach(el => { const r = el.getBoundingClientRect(); first.set(el, { left: r.left, top: r.top, width: r.width, height: r.height }); });
   mutate();
   els.forEach(el => {
     const isGroup = el.classList.contains('group');
-    // Cancel an in-flight height animation so flipElement reads the true height.
-    if (isGroup && el._hAnim) { el._hAnim.cancel(); el._hAnim = null; }
+    // Cancel an in-flight size animation so flipElement reads the true size.
+    if (isGroup && el._sizeAnim) { el._sizeAnim.cancel(); el._sizeAnim = null; }
     flipElement(el, first.get(el)!, isGroup);
   });
 }
@@ -230,7 +235,9 @@ export function wireEntryDnD(groupDiv: HTMLElement): void {
     from.addEventListener('pointerdown', (e) => {
       if (!isTouch && (e.target as HTMLElement).closest('.entry-actions')) return; // leave buttons clickable
       startDrag(e, wrap, {
-        resolve: resolveY,
+        // A wide group lays its entries out as a two-column grid (row by row);
+        // everywhere else - and a wide group on a narrow screen - is a list.
+        resolve: (items, e, c) => (getComputedStyle(c).display === 'grid' ? resolveGrid : resolveY)(items, e),
         getZones: () => [...document.querySelectorAll<HTMLElement>('.group .entries')].map(c => ({
           container: c,
           items: [...c.querySelectorAll<HTMLElement>(':scope > .entry-wrap')]
@@ -263,7 +270,7 @@ export function wireGroupDnD(): void {
     if (!from) return;
     from.addEventListener('pointerdown', (e) => {
       const t = e.target as HTMLElement;
-      if (!isTouch && (t.closest('.group-title') || t.closest('.group-delete'))) return;
+      if (!isTouch && (t.closest('.group-title') || t.closest('.group-actions'))) return;
       startDrag(e, g, {
         resolve: resolveGrid,
         getZones: () => [{

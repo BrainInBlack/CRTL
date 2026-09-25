@@ -14,6 +14,8 @@ dependencies and works fully offline. Open it in a browser and you're done.
 
 - **Groups of services** in a card layout. Each row has an icon, a name, and
   one or more links.
+- **Double-size groups.** In edit mode, a group can span two columns (its
+  entries run in two columns, lined up with the groups beside it) or two rows.
 - **Click** an entry -> opens its primary URL in a new tab.
 - **Long-press** an entry with multiple links -> a horizontal button strip
   slides in from the right with all of them labeled.

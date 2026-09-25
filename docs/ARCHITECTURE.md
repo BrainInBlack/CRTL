@@ -85,7 +85,7 @@ else is built by JS.
 | `menu.ts` | The anchored context menu - touch's stand-in for the hover-revealed row actions. |
 | `sync.ts` | Encrypted GitHub-gist sync (see below). |
 | `backup.ts` | Passphrase-encrypted config export/import to a local file (see below). |
-| `globals.d.ts` | Ambient `HTMLElement` augmentation for the two ad-hoc element props (`_onClose`, `_hAnim`). |
+| `globals.d.ts` | Ambient `HTMLElement` augmentation for the two ad-hoc element props (`_onClose`, `_sizeAnim`). |
 | `styles.css` | The whole theme, with the CRT palette exposed as CSS variables in `:root`. |
 
 ### State flow

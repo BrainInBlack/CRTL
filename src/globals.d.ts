@@ -11,7 +11,7 @@ declare global {
   interface HTMLElement {
     /** Modal backdrops: invoked on close (Esc / backdrop click). See modals.ts. */
     _onClose?: () => void;
-    /** Group elements: the in-flight FLIP height animation. See dnd.ts. */
-    _hAnim?: Animation | null;
+    /** Group elements: the in-flight FLIP size (width/height) animation. See dnd.ts. */
+    _sizeAnim?: Animation | null;
   }
 }

@@ -7,6 +7,34 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.4.0] - 2026-09-25
+
+### Added
+
+- **Double-width and double-height groups** ([#36](https://github.com/BrainInBlack/CRTL/issues/36)) -
+  in edit mode, two new arrow buttons in a group's header make it span two
+  columns or two rows. A double-width group lays its entries out in two
+  columns, row by row, lined up with the entries of the groups next to it. Only
+  one of the two can be on at a time, and both fall back to a normal group on
+  screens too narrow for two columns. Existing groups are unchanged.
+
+### Changed
+
+- **Updated the build and test tooling** - `vite` 8.3.0 -> 8.3.1 and `vitest`
+  5.0.1 -> 5.0.2. None of this ships in CRTL - the built app is unchanged.
+
+### Fixed
+
+- **Home probes could be lost after setting up sync on a new device** -
+  importing a setup blob pulled the gist's Home-detection probes, but the open
+  Global options dialog kept showing the old ones, so **Save options** wrote the
+  old list back and pushed it to the gist, replacing your probes everywhere.
+  The probes field now follows every import (setup blob, backup, background
+  sync) unless you have edited it yourself.
+- **Home / Away re-detects right after an import** instead of on the next 30s
+  check, so probes from the gist or a backup take effect immediately - on the
+  web version, a beacon arriving this way turns auto-detect on straight away.
+
 ## [1.3.2] - 2026-09-15
 
 ### Changed
@@ -223,7 +251,8 @@ Initial public release. Everything below describes the app as it ships at 1.0.0.
 - Icon strings are escaped before interpolation into the `url("...")` CSS mask,
   so a crafted `data:` icon can't break out of the `--icon` custom property.
 
-[Unreleased]: https://github.com/BrainInBlack/CRTL/compare/v1.3.2...HEAD
+[Unreleased]: https://github.com/BrainInBlack/CRTL/compare/v1.4.0...HEAD
+[1.4.0]: https://github.com/BrainInBlack/CRTL/compare/v1.3.2...v1.4.0
 [1.3.2]: https://github.com/BrainInBlack/CRTL/compare/v1.3.1...v1.3.2
 [1.3.1]: https://github.com/BrainInBlack/CRTL/compare/v1.3.0...v1.3.1
 [1.3.0]: https://github.com/BrainInBlack/CRTL/compare/v1.2.1...v1.3.0

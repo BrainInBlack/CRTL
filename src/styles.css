@@ -140,6 +140,34 @@ body {
 
 .entries { padding: 10px; }
 
+/* ---------- Double-size groups ----------
+   `span-wide` covers two grid columns, `span-tall` two grid rows. Wide entries
+   run row by row in two columns sized and spaced so each lines up with the
+   entry column of a regular group in the same track: 296px = 320 - 2x2 border
+   - 2x10 padding, and the 44px gap = the 20px grid gap + the padding and border
+   either side of it.
+
+   Only from 700px up: below two tracks (2 x 320 + 20, plus body padding and a
+   classic scrollbar) the grid is a single column and there is nothing to span. */
+@media (min-width: 700px) {
+  .group.span-wide { width: 660px; grid-column: span 2; }
+  .group.span-tall { grid-row: span 2; }
+
+  /* Grid items don't collapse margins, so the list's 5px row rhythm moves into
+     row-gap and the padding (10 + the first row's 5). The add row keeps its
+     2px foot: -3 against the 15. */
+  .group.span-wide .entries {
+    display: grid;
+    grid-template-columns: repeat(2, 296px);
+    column-gap: 44px;
+    row-gap: 5px;
+    padding: 15px 10px;
+  }
+  .group.span-wide .entry-wrap { margin: 0; }
+  .group.span-wide .add-entry  { grid-column: 1 / -1; margin: 0 0 -3px; }
+  .group.span-wide .entries > .drag-placeholder { margin: 0 !important; }
+}
+
 /* ---------- Entry row ---------- */
 .entry-wrap {
   margin: 5px 0;
@@ -485,16 +513,38 @@ body.touch .group-header .drag-handle { color: var(--knockout-a); }
 body.edit-mode:not(.touch) .group-header { cursor: grab; }
 body.edit-mode:not(.touch) .group-header:active { cursor: grabbing; }
 
-.group-delete {
+/* Header controls, right-aligned: the two span toggles, then delete. Each is a
+   32px target around its 14px glyph; negative margins hang the extra height
+   into the header's padding (so it doesn't grow) and the last one's into the
+   right padding (so the trash can keeps its place at the content edge). The
+   targets butt up against each other, so they need no gap. */
+.group-actions {
+  display: flex;
+  align-items: center;
+  margin-left: auto;
+}
+
+.group-delete,
+.group-span {
   display: flex;
   align-items: center;
   justify-content: center;
-  margin-left: auto;
+  min-width: 32px;
+  min-height: 32px;
+  margin: -9px 0;
   font-size: 14px;
   cursor: pointer;
   color: var(--knockout-a);
 }
+.group-delete { margin-right: -9px; }
 .group-delete:hover { color: var(--status-down); }
+
+/* Span toggles read off (dim) / on (full); the one blocked by the other's span
+   fades further and ignores the pointer. */
+.group-span          { opacity: 0.45; }
+.group-span:hover    { opacity: 0.8; }
+.group-span.on       { opacity: 1; }
+.group-span.disabled { opacity: 0.15; cursor: default; }
 
 .group-title[contenteditable="true"] {
   outline: 1px dashed rgba(var(--glow), 0.6);
@@ -532,6 +582,10 @@ body.edit-mode:not(.touch) .group-header:active { cursor: grabbing; }
   user-select: none;
 }
 .add-group:hover { background: rgba(var(--ink), 0.1); }
+
+/* An entry placeholder takes the row rhythm of the list it lands in, not the
+   one it was lifted from (dnd.ts copies the source margin inline). */
+.entries > .drag-placeholder { margin: 5px 0 !important; }
 
 /* Drag visuals. */
 .dragging {
@@ -1017,13 +1071,15 @@ body.touch .check-row:active input[type="checkbox"]:not(:checked) {
 body.touch .entry { padding: 14px 15px; }
 body.touch .entry-more { font-size: 20px; }
 
-/* The group's delete button: 44px of target inside an unchanged header. */
-body.touch .group-delete {
+/* The group's header controls grow to 44px of target, same hang-in as above. */
+body.touch .group-delete,
+body.touch .group-span {
   min-width: 44px;
   min-height: 44px;
-  margin: -11px -10px -11px auto;
+  margin: -11px 0;
   font-size: 16px;
 }
+body.touch .group-delete { margin-right: -10px; }
 
 /* Fixed chrome, bottom corners. Wider buttons need wider spacing between the
    two on each side, and the gear menu clears the taller button. */
