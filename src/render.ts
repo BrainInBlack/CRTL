@@ -196,6 +196,7 @@ export function render(away: boolean): void {
   CONFIG.groups.forEach((group, gi) => {
     const groupDiv = document.createElement('div');
     groupDiv.className = 'group';
+    if (group.span) groupDiv.classList.add(`span-${group.span}`);
     groupDiv.dataset.group = String(gi);
 
     const header = document.createElement('div');

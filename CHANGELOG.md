@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- **Double-width and double-height groups** ([#36](https://github.com/BrainInBlack/CRTL/issues/36)) -
+  in edit mode, two new arrow buttons in a group's header make it span two
+  columns or two rows. A double-width group lays its entries out in two
+  columns, row by row, lined up with the entries of the groups next to it. Only
+  one of the two can be on at a time, and both fall back to a normal group on
+  screens too narrow for two columns. Existing groups are unchanged.
+
 ## [1.3.2] - 2026-09-15
 
 ### Changed

@@ -8,6 +8,7 @@
 
 import { CONFIG } from './state';
 import { BUNDLED_ICONS } from './icons.bundled';
+import type { GroupSpan } from './types';
 
 /** True if a caught value looks like an AbortError (abort of a fetch/import). */
 const isAbort = (e: unknown): boolean => !!e && (e as { name?: string }).name === 'AbortError';
@@ -125,6 +126,20 @@ const GRIP_ICON =
 
 /** Drag-grip span (`.drag-handle` is applied by the caller). */
 export const gripSpan = (): HTMLSpanElement => iconEl(GRIP_ICON);
+
+/* Group span toggles: hand-authored solid double arrows. bi:arrows /
+   bi:arrows-vertical are 1px outlines and read far too thin next to the
+   header's bi:trash-fill; these carry the same weight - a 3px shaft between
+   two 10px heads - and are one shape rotated 90deg. */
+const SPAN_ICONS: Record<GroupSpan, string> = {
+  wide: "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 16 16'>" +
+        "<path d='M0 8l5-5v3.5h6V3l5 5-5 5V9.5H5V13z'/></svg>",
+  tall: "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 16 16'>" +
+        "<path d='M8 0l5 5H9.5v6H13l-5 5-5-5h3.5V5H3z'/></svg>"
+};
+
+/** Span-toggle glyph for a group header. */
+export const spanIconSpan = (span: GroupSpan): HTMLSpanElement => iconEl(SPAN_ICONS[span]);
 
 /** Mask URL for a bundled `bi` name - for filling static [data-bi] chrome icons. */
 export const biUri = (name: string): string => BUNDLED_ICONS['bi:' + name] || biCdnUrl(name);

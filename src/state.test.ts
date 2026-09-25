@@ -23,6 +23,16 @@ describe('loadLocalConfig', () => {
     expect(typeof c.version).toBe('number');                 // backfilled
   });
 
+  it('keeps a valid group span and drops an unknown one', () => {
+    localStorage.setItem(CONFIG_KEY, JSON.stringify({ groups: [
+      { group: 'W', entries: [], span: 'wide' },
+      { group: 'T', entries: [], span: 'tall' },
+      { group: 'X', entries: [], span: 'x" onclick="alert(1)' },
+      { group: 'N', entries: [], span: 2 }
+    ] }));
+    expect(loadLocalConfig().groups.map(g => g.span)).toEqual(['wide', 'tall', undefined, undefined]);
+  });
+
   it('falls back to defaults on malformed JSON', () => {
     localStorage.setItem(CONFIG_KEY, '{ not valid json');
     expect(loadLocalConfig().groups).toEqual(DEFAULT_GROUPS);

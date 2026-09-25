@@ -18,10 +18,16 @@ export interface Entry {
   links: Link[];
 }
 
+/** Double-size group layout: `wide` spans two grid columns (its entries flow
+   row by row across both), `tall` spans two grid rows. One or the other. */
+export type GroupSpan = 'wide' | 'tall';
+
 /** A named group of entries. */
 export interface Group {
   group: string;
   entries: Entry[];
+  /** Absent = a regular single grid cell. */
+  span?: GroupSpan;
 }
 
 /** The whole persisted config (localStorage +, when synced, the gist). */
@@ -50,6 +56,7 @@ export type LocationState = 'home' | 'away';
 export interface Rect {
   left: number;
   top: number;
+  width: number;
   height: number;
 }
 
@@ -61,7 +68,7 @@ export interface DragZone {
 
 /** Behavior for a single drag interaction. */
 export interface DragOptions {
-  resolve: (items: HTMLElement[], e: PointerEvent) => HTMLElement | null;
+  resolve: (items: HTMLElement[], e: PointerEvent, container: HTMLElement) => HTMLElement | null;
   getZones: () => DragZone[];
   onCommit: (item: HTMLElement, placeholder: HTMLElement) => void;
 }

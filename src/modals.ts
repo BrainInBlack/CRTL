@@ -584,6 +584,7 @@ export function openHelpModal(): void {
       <p>Open the <b>gear</b> (bottom-right) -> <b>Edit mode</b>.</p>
       <p>${reorder}</p>
       <p>${rowActions}, ${tap} a group title to rename, and use <b>+</b> to add entries or groups.</p>
+      <p>The arrows in a group's header make it <b>double width</b> or <b>double height</b> - one at a time, on screens wide enough for two columns.</p>
       <p>Icons: <code>bi:name</code> (<a href="https://icons.getbootstrap.com" target="_blank" rel="noopener noreferrer">Bootstrap</a>) or <code>svg:name</code> (<a href="https://simpleicons.org" target="_blank" rel="noopener noreferrer">brand</a>); uncurated ones fetch once from a CDN.</p>
     </div>
     <div class="help-section">

@@ -29,11 +29,13 @@ const isRecord = (x: unknown): boolean => !!x && typeof x === 'object' && !Array
 /** Deep-coerce untrusted `groups`: drop non-object groups/entries/links so a
    crafted payload can't crash render()/orderLinks() with a null record, and
    coerce non-string icons - iconUri() requires a string ('' renders the
-   question-mark fallback). */
+   question-mark fallback). An unknown `span` is dropped, since render() turns
+   it into a class name. */
 function normalizeGroups(raw: unknown): Group[] {
   if (!Array.isArray(raw)) return clone(DEFAULT_GROUPS);
   return (raw as Group[]).filter(isRecord).map(g => ({
     ...g,
+    span: g.span === 'wide' || g.span === 'tall' ? g.span : undefined,
     entries: Array.isArray(g.entries)
       ? g.entries.filter(isRecord).map(e => ({
           ...e,
