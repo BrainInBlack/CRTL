@@ -94,6 +94,11 @@ function refreshSyncIndicator(): void {
 }
 window.addEventListener('sync-status', refreshSyncIndicator);
 
+// An adopted config (gist or backup) can bring different Home probes - and on
+// the hosted build, turn a manual-only pill into auto-detect or back - so
+// re-detect now rather than on the next 30s tick.
+window.addEventListener('config-adopted', recheckLocation);
+
 /* ---- global dismissal: outside-click + Escape ---- */
 
 document.addEventListener('click', (e) => {

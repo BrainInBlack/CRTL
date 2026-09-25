@@ -16,6 +16,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   one of the two can be on at a time, and both fall back to a normal group on
   screens too narrow for two columns. Existing groups are unchanged.
 
+### Fixed
+
+- **Home probes could be lost after setting up sync on a new device** -
+  importing a setup blob pulled the gist's Home-detection probes, but the open
+  Global options dialog kept showing the old ones, so **Save options** wrote the
+  old list back and pushed it to the gist, replacing your probes everywhere.
+  The probes field now follows every import (setup blob, backup, background
+  sync) unless you have edited it yourself.
+- **Home / Away re-detects right after an import** instead of on the next 30s
+  check, so probes from the gist or a backup take effect immediately - on the
+  web version, a beacon arriving this way turns auto-detect on straight away.
+
 ## [1.3.2] - 2026-09-15
 
 ### Changed

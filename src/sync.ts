@@ -91,6 +91,11 @@ export const getSyncError = (): string | null => syncError;
 // Broadcast so the gear indicator + open options modal can reflect sync health.
 const emitStatus = () => { try { window.dispatchEvent(new CustomEvent('sync-status')); } catch {} };
 
+// Broadcast after CONFIG was replaced wholesale, so what reads config outside
+// render() can catch up: Home/Away re-detects against the adopted probes
+// (main.ts) and an open options modal refreshes its probes field (modals.ts).
+const emitAdopted = () => { try { window.dispatchEvent(new CustomEvent('config-adopted')); } catch {} };
+
 export function reportSyncError(err: unknown): void {
   syncError = errMsg(err);
   console.warn('[crtl sync]', syncError);
@@ -234,6 +239,7 @@ export async function applyAndEmbed(next: Config, opts: AdoptOpts = {}): Promise
   saveLocal();                                    // persist the freshly-fetched icons
   opts.finalize?.();                              // markSynced (gist) | persist (backup)
   rerender();                                     // repaint with the now-cached icons
+  emitAdopted();                                  // re-detect location, refresh open modal
 }
 
 /** applyAndEmbed under the importing write-lock - for callers that don't already
