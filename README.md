@@ -7,7 +7,7 @@ dependencies and works fully offline. Open it in a browser and you're done.
 ![License: MIT + Commons Clause](https://img.shields.io/badge/license-MIT%20%2B%20Commons%20Clause-blue) ![TypeScript](https://img.shields.io/badge/TypeScript-strict-3178c6?logo=typescript&logoColor=white) ![Vite](https://img.shields.io/badge/built%20with-Vite-646cff?logo=vite&logoColor=white) ![Local-first](https://img.shields.io/badge/data-100%25%20local-brightgreen) ![Offline](https://img.shields.io/badge/offline-single--file-informational) [![CI](https://github.com/BrainInBlack/CRTL/actions/workflows/ci.yml/badge.svg)](https://github.com/BrainInBlack/CRTL/actions/workflows/ci.yml)
 
 <p align="center">
-  <img src="docs/screenshot.png" alt="CRTL - phosphor / CRT homelab dashboard" width="820">
+  <img src="docs/theme-phosphor.png" alt="CRTL in the Phosphor theme, split diagonally: green light mode on the left, amber dark mode on the right" width="820">
 </p>
 
 ## What it does
@@ -19,17 +19,15 @@ dependencies and works fully offline. Open it in a browser and you're done.
 - **Click** an entry -> opens its primary URL in a new tab.
 - **Long-press** an entry with multiple links -> a horizontal button strip
   slides in from the right with all of them labeled.
-- **Auto Home / Away detection.** At load and every 60 seconds the page
+- **Auto Home / Away detection.** At load and every 30 seconds the page
   probes a configurable list of internal endpoints. If any responds, you're
   Home; otherwise Away.
 - **Away mode** reorders each entry's links so non-internal URLs come first,
   and dims entries that have no non-internal URL.
 - **Optional per-service health dots** beside each name (green = up, amber =
-  down). Toggle it per entry in the editor.
-- **Two colour themes, each with a light and a dark mode.** Phosphor (green,
-  amber in the dark) and Paper (soft black on warm white, inverted in the dark).
-  Pick the theme under the gear, flip light / dark with the sun / moon button;
-  both are remembered per device.
+  down). Toggle it per entry in the editor; **Accessibility** can swap the dots
+  for colour-blind friendly check / cross marks.
+- **Two colour themes, each with a light and a dark mode** - see [Themes](#themes).
 - **A pill in the top-right** shows the current location state and lets you
   flip it manually.
 - **Touch-aware.** On a phone or tablet the UI switches to finger-sized
@@ -46,6 +44,21 @@ reach the network, and the UI says so:
   from a public CDN (api.iconify.design / unpkg) when you save the entry, then
   embedded into your config.
 - **Encrypted gist sync** talks to `api.github.com` (AES-encrypted payload).
+
+## Themes
+
+Two colour themes, each with a light and a dark mode. Pick the theme under the
+**gear -> Theme**; the **sun / moon** button (bottom-right) flips light and dark
+within it. Both choices are remembered per device and never synced.
+
+- **Phosphor** (above) - green phosphor on sage in light mode, amber on near-black
+  in the dark.
+- **Paper** - soft black on a warm white. Its dark mode is a true inversion: a
+  soft-black page with paper-white headers.
+
+<p align="center">
+  <img src="docs/theme-paper.png" alt="CRTL in the Paper theme, split diagonally: warm-white light mode on the left, inverted dark mode on the right" width="820">
+</p>
 
 ## Two versions
 
