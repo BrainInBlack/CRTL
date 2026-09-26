@@ -77,6 +77,17 @@ describe('update checks', () => {
     await expect(checkForUpdate()).rejects.toThrow(/rate limit/);
   });
 
+  it('re-checks when the cached check is dated in the future', async () => {
+    setAutoCheck(true);
+    localStorage.setItem('crtl-update-cache', JSON.stringify({
+      at: Date.now() + 365 * 24 * 3600 * 1000, version: APP_VERSION, url: `${REL}/tag/v${APP_VERSION}`
+    }));
+    const f = respond({ tag_name: newer, assets: [] });
+    vi.stubGlobal('fetch', f);
+    expect((await autoCheckForUpdate())?.version).toBe(`${maj + 1}.0.0`);
+    expect(f).toHaveBeenCalledTimes(1);
+  });
+
   it('stays silent when the startup check fails', async () => {
     setAutoCheck(true);
     vi.stubGlobal('fetch', vi.fn(async () => { throw new TypeError('offline'); }));

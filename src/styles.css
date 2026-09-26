@@ -751,6 +751,9 @@ a.gear-item { text-decoration: none; }
 }
 .gear-item.on .toggle { background: var(--accent); }
 .gear-item.on .toggle::after { transform: translateX(16px); }
+/* Paper's accent (the on-track) is close to its --crt-text-dim (identical in
+   dark), so the knob would vanish - draw it in the block colour instead. */
+:root.paper .gear-item.on .toggle::after { background: var(--crt-dark); }
 
 /* ---------- Context menu (touch row actions, see menu.ts) ---------- */
 .menu-backdrop {

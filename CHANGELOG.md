@@ -15,6 +15,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   a dot on the gear. Nothing is checked unless you ask; the hosted version is always current and
   has no checker.
 
+### Fixed
+
+- **Edit-mode toggle in the Paper theme** - switched on, its knob matched the track (exactly so
+  in dark mode), so the switch read as a blank pill. The knob now uses the block colour.
+
 ## [1.5.0] - 2026-09-26
 
 ### Added

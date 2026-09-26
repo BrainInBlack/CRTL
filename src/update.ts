@@ -106,7 +106,10 @@ export async function checkForUpdate(): Promise<Release | null> {
 export async function autoCheckForUpdate(): Promise<Release | null> {
   if (!UPDATES_SUPPORTED || !getAutoCheck()) return null;
   const c = cached();
-  if (c && Date.now() - c.at < CHECK_EVERY) return announce(c);
+  // A future `at` (checked while the clock ran ahead) counts as stale, else it
+  // would pin the cache until the clock caught up.
+  const age = c ? Date.now() - c.at : -1;
+  if (c && age >= 0 && age < CHECK_EVERY) return announce(c);
   try { return announce(await fetchLatest()); } catch { return null; }
 }
 
