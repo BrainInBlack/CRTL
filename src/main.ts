@@ -14,11 +14,13 @@ import { closeContextMenu } from './menu';
 import { setState, recheckLocation } from './location';
 import { probeHome, canAutoDetect } from './probes';
 import { syncFromGist, importFromGist, isSyncReady, getSync, getSyncError } from './sync';
+import { autoCheckForUpdate, type Release } from './update';
 
 const LOCATION_REFRESH_MS = 30000; // re-detect Home/Away
 const SERVICE_REFRESH_MS  = 30000; // re-probe service dots
 const SERVICE_OFFSET_MS   = 5000;  // stagger services after the location check
 const SYNC_REFRESH_MS     = 60000; // re-pull the gist
+const UPDATE_REFRESH_MS   = 3600000; // opt-in update check (itself throttled to daily)
 
 // Fill the static chrome glyphs (gear, help, sliders) from the bundled set.
 document.querySelectorAll<HTMLElement>('[data-bi]').forEach(el =>
@@ -64,6 +66,29 @@ async function downloadOfflineCopy(): Promise<void> {
     alert('Could not download the offline version. Please try again.');
   }
 }
+
+// Local build only (see update.ts): a newer release adds a gear item linking
+// its CRTL.html and marks the gear, so a long-lived copy notices it's stale.
+function showUpdate(rel: Release): void {
+  let item = document.getElementById('update-available') as HTMLAnchorElement | null;
+  if (!item) {
+    item = document.createElement('a');
+    item.className = 'gear-item';
+    item.id = 'update-available';
+    item.target = '_blank'; item.rel = 'noopener noreferrer';
+    const label = document.createElement('span');
+    const icon = document.createElement('span'); icon.className = 'svgicon';
+    icon.style.setProperty('--icon', `url("${biUri('download')}")`);
+    item.append(label, icon);
+    item.addEventListener('click', () => gearMenu.classList.remove('open'));
+    gearMenu.prepend(item);
+  }
+  item.href = rel.url;
+  item.title = 'Download the latest CRTL.html from GitHub';
+  item.querySelector('span')!.textContent = `Update to v${rel.version}`;
+  gear.classList.add('update-available');
+}
+window.addEventListener('update-available', (e) => showUpdate((e as CustomEvent<Release>).detail));
 
 /* ---- dark mode ----
    Device-local (not synced): light unless explicitly toggled to dark. The class
@@ -180,3 +205,7 @@ setInterval(() => {
 setTimeout(() => setInterval(runServiceProbes, SERVICE_REFRESH_MS), SERVICE_OFFSET_MS);
 
 setInterval(() => pullGist({ silent: true }), SYNC_REFRESH_MS);
+
+// Opt-in, local build only; a no-op otherwise (see update.ts).
+autoCheckForUpdate();
+setInterval(autoCheckForUpdate, UPDATE_REFRESH_MS);

@@ -92,6 +92,7 @@ live in their own device-local keys (`crtl-theme`, `crtl-palette`), never in
 | `menu.ts` | The anchored context menu - touch's stand-in for the hover-revealed row actions. |
 | `sync.ts` | Encrypted GitHub-gist sync (see below). |
 | `backup.ts` | Passphrase-encrypted config export/import to a local file (see below). |
+| `update.ts` | Local build only: opt-in check of GitHub's latest release against `APP_VERSION`; a newer one fires `update-available`, which `main.ts` turns into a gear item linking its `CRTL.html`. |
 | `globals.d.ts` | Ambient `HTMLElement` augmentation for the two ad-hoc element props (`_onClose`, `_sizeAnim`). |
 | `styles.css` | All styling; each colour theme (light + dark) is a block of CSS variables on `:root`. |
 
@@ -244,6 +245,9 @@ remote data. The places with security weight:
 - **Fetched icons** - brand/custom SVGs pulled from a CDN and embedded into
   config and the DOM.
 - **Gist payload** - decrypted from `api.github.com` and applied to `CONFIG`.
+- **Release metadata** - `update.ts` reads `releases/latest` from `api.github.com`;
+  only a strict `X.Y.Z` tag is accepted and the download URL is built from it,
+  never taken from the payload.
 
 See [`.github/SECURITY.md`](../.github/SECURITY.md) for the reporting process and
 the in/out-of-scope list.

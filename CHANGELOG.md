@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- **Update check for the offline version** - Help -> **Updates** -> **Check now** asks GitHub for
+  the latest release and links its `CRTL.html`. Opt in to **Check on startup** (per device, at
+  most once a day) and a newer release adds an **Update to vX.Y.Z** item to the gear menu, with
+  a dot on the gear. Nothing is checked unless you ask; the hosted version is always current and
+  has no checker.
+
 ## [1.5.0] - 2026-09-26
 
 ### Added
