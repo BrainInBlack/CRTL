@@ -26,6 +26,10 @@ dependencies and works fully offline. Open it in a browser and you're done.
   and dims entries that have no non-internal URL.
 - **Optional per-service health dots** beside each name (green = up, amber =
   down). Toggle it per entry in the editor.
+- **Two colour themes, each with a light and a dark mode.** Phosphor (green,
+  amber in the dark) and Paper (soft black on warm white, inverted in the dark).
+  Pick the theme under the gear, flip light / dark with the sun / moon button;
+  both are remembered per device.
 - **A pill in the top-right** shows the current location state and lets you
   flip it manually.
 - **Touch-aware.** On a phone or tablet the UI switches to finger-sized

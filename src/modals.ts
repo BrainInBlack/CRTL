@@ -593,6 +593,7 @@ export function openHelpModal(): void {
       <h4>Using the dashboard</h4>
       <p><b>${Tap}</b> an entry to open its main link.</p>
       <p><b>Long-press</b> (or tap the dots) to reveal all of an entry's links.</p>
+      <p>The <b>gear</b> -> <b>Theme</b> switches colour themes (Phosphor, Paper); the sun / moon button (bottom-right) flips light and dark.</p>
       <p>The <b>Home / Away</b> pill (top-right) auto-detects your location; ${tap} to cycle <b>lock -> switch -> auto</b>. Away shows public links first and dims home-only entries. Dots: green up, amber down - or check / cross marks with the colour-blind option in the <b>Accessibility</b> menu (bottom-left).</p>
     </div>
     ${webNote}
