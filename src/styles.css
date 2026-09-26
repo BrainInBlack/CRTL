@@ -3,21 +3,21 @@
 
 /* ---------- Theme palette ---------- */
 :root {
-  --crt-bg:           #9cb89c;
-  --crt-bg-shadow:    #7a9a7a;
-  --crt-text-bright:  #d4ecd4;
-  --crt-text-medium:  #a8c8a8;
-  --crt-text-dim:     #b8d4b8;
+  --crt-bg:           rgb(156, 184, 156);
+  --crt-bg-shadow:    rgb(122, 154, 122);
+  --crt-text-bright:  rgb(212, 236, 212);
+  --crt-text-medium:  rgb(168, 200, 168);
+  --crt-text-dim:     rgb(184, 212, 184);
   --crt-dark:         rgb(40, 40, 40);
   --crt-text-on-bg:   rgb(40, 40, 40);
-  --status-up:        #6b8e6b;
-  --status-down:      #c97a4a;
-  --status-unknown:   #888;
+  --status-up:        rgb(107, 142, 107);
+  --status-down:      rgb(201, 122, 74);
+  --status-unknown:   rgb(136, 136, 136);
   /* Colour-blind glyph colours: the thin strokes need far darker ink than the
      filled dot to stay visible on the light background (>=4.5:1 vs --crt-bg). */
-  --status-up-glyph:   #1f4a1f;
-  --status-down-glyph: #6e2e0e;
-  --pill-away:        #e8b08a;
+  --status-up-glyph:   rgb(31, 74, 31);
+  --status-down-glyph: rgb(110, 46, 14);
+  --pill-away:        rgb(232, 176, 138);
   /* Interactive accents (primary button, toggles, focus, progress). Follows the
      status-up green on the light theme, the phosphor colour on dark. */
   --accent:           var(--status-up);
@@ -30,6 +30,10 @@
   /* Tints on the dark blocks (dividers, input borders, hover washes) as an RGB
      triplet, used via rgba(var(--glow), a). Tracks the phosphor colour. */
   --glow:             156, 184, 156;
+  /* Recessed wells on the dark blocks (text fields, checkboxes, code, progress
+     track). */
+  --well:             rgba(0, 0, 0, 0.35);
+  --well-code:        rgba(0, 0, 0, 0.3);
 }
 
 /* Dark theme: amber phosphor. The page goes near-black and everything that
@@ -37,23 +41,72 @@
    block surfaces themselves are left alone. Lives on <html> (not body) so the
    inline head script can apply it before first paint. */
 :root.dark {
-  --crt-bg:           #16110b;
-  --crt-bg-shadow:    #0d0a06;
-  --crt-text-bright:  #ffdca8;
-  --crt-text-medium:  #d8a860;
-  --crt-text-dim:     #eec080;
-  --crt-text-on-bg:   #d8a24e;
-  --status-up:        #7fb87f;
-  --status-down:      #e0654a;
+  --crt-bg:           rgb(22, 17, 11);
+  --crt-bg-shadow:    rgb(13, 10, 6);
+  --crt-text-bright:  rgb(255, 220, 168);
+  --crt-text-medium:  rgb(216, 168, 96);
+  --crt-text-dim:     rgb(238, 192, 128);
+  --crt-text-on-bg:   rgb(216, 162, 78);
+  --status-up:        rgb(127, 184, 127);
+  --status-down:      rgb(224, 101, 74);
   /* Bright-on-dark already contrasts fine; glyphs keep the dot colours. */
   --status-up-glyph:   var(--status-up);
   --status-down-glyph: var(--status-down);
-  --pill-away:        #ff9068;
-  --accent:           #e8ab55;
-  --knockout-a:       #ffdca8;
-  --knockout-b:       #d8a860;
+  --pill-away:        rgb(255, 144, 104);
+  --accent:           rgb(232, 171, 85);
+  --knockout-a:       rgb(255, 220, 168);
+  --knockout-b:       rgb(216, 168, 96);
   --ink:              216, 162, 78;
   --glow:             216, 162, 78;
+}
+
+/* Paper theme: soft black on a cool-leaning warm white - same scanlines,
+   knockout titles and shadows as Phosphor, no colour cast. The dark variant is
+   a true inversion: the page goes soft black and the blocks turn paper-white
+   with soft-black text, so the blocks read as light surfaces there. The class
+   sits on <html> next to .dark (pre-applied by the head script). */
+:root.paper {
+  --crt-bg:           rgb(230, 228, 220);
+  --crt-bg-shadow:    rgb(204, 201, 191);
+  --crt-text-bright:  rgb(240, 238, 232);
+  --crt-text-medium:  rgb(194, 191, 181);
+  --crt-text-dim:     rgb(214, 211, 202);
+  --crt-dark:         rgb(36, 35, 33);
+  --crt-text-on-bg:   rgb(36, 35, 33);
+  --status-up:        rgb(110, 138, 104);
+  --status-down:      rgb(196, 112, 72);
+  --status-unknown:   rgb(138, 136, 130);
+  --status-up-glyph:   rgb(34, 64, 30);
+  --status-down-glyph: rgb(110, 46, 14);
+  --pill-away:        rgb(222, 164, 124);
+  --accent:           rgb(194, 191, 181);
+  --knockout-a:       var(--crt-text-bright);
+  --knockout-b:       var(--crt-bg-shadow);
+  --ink:              36, 35, 33;
+  --glow:             230, 228, 220;
+}
+
+:root.paper.dark {
+  --crt-bg:           rgb(29, 28, 27);
+  --crt-bg-shadow:    rgb(19, 19, 18);
+  --crt-text-bright:  rgb(29, 28, 27);
+  --crt-text-medium:  rgb(90, 88, 82);
+  --crt-text-dim:     rgb(62, 60, 56);
+  --crt-dark:         rgb(228, 226, 218);
+  --crt-text-on-bg:   rgb(228, 226, 218);
+  --status-up:        rgb(127, 176, 120);
+  --status-down:      rgb(214, 104, 74);
+  --status-up-glyph:   var(--status-up);
+  --status-down-glyph: var(--status-down);
+  /* Sits on the paper-white pill, so darker than the page-level colours. */
+  --pill-away:        rgb(178, 84, 46);
+  --accent:           rgb(62, 60, 56);
+  --knockout-a:       rgb(29, 28, 27);
+  --knockout-b:       rgb(70, 68, 63);
+  --ink:              228, 226, 218;
+  --glow:             36, 35, 33;
+  --well:             rgba(36, 35, 33, 0.06);
+  --well-code:        rgba(36, 35, 33, 0.1);
 }
 
 /* ---------- Reset ---------- */
@@ -136,7 +189,7 @@ body {
 
 /* On dark the header block barely contrasts with the group body - a glow line
    at its base marks where the header ends. */
-:root.dark .group-header { border-bottom: 1px solid rgba(var(--glow), 0.35); }
+:root.dark:not(.paper) .group-header { border-bottom: 1px solid rgba(var(--glow), 0.35); }
 
 .entries { padding: 10px; }
 
@@ -212,8 +265,8 @@ body.touch .entry:active {
    over as the hover cue. */
 body:not(.touch) .entry-wrap:hover,
 body.touch .entry-wrap:active { box-shadow: 2px 2px 8px rgba(0, 0, 0, 0.3); }
-:root.dark body:not(.touch) .entry-wrap:hover,
-:root.dark body.touch .entry-wrap:active {
+:root.dark:not(.paper) body:not(.touch) .entry-wrap:hover,
+:root.dark:not(.paper) body.touch .entry-wrap:active {
   box-shadow: none;
   outline: 1px solid rgba(var(--glow), 0.6);
 }
@@ -303,6 +356,16 @@ body.touch .entry:active .entry-more { opacity: 1; }
   box-shadow: 0 0 4px var(--status-unknown);
 }
 .entry-status.glyphs .svgicon { display: none; filter: drop-shadow(0 0 3px currentColor); }
+/* Embolden the thin check / cross: the glyphs are filled masks (no stroke to
+   widen), so four hairline drop-shadows on the parent dilate the shape by
+   ~0.5px each side. On the parent, not the icon - a filter on the masked
+   element itself would be clipped away by its own mask. */
+.entry-status.glyphs.up,
+.entry-status.glyphs.down {
+  filter:
+    drop-shadow(0.5px 0 0 currentColor) drop-shadow(-0.5px 0 0 currentColor)
+    drop-shadow(0 0.5px 0 currentColor) drop-shadow(0 -0.5px 0 currentColor);
+}
 .entry-status.glyphs.up   { color: var(--status-up-glyph); }
 .entry-status.glyphs.down { color: var(--status-down-glyph); }
 .entry-status.glyphs.up   .glyph-up   { display: inline-block; }
@@ -397,9 +460,9 @@ body.touch .overlay-link:active::after {
 }
 .location-pill.away {
   color: var(--pill-away);
-  text-shadow: 0 0 6px rgba(232, 176, 138, 0.4);
+  text-shadow: 0 0 6px color-mix(in srgb, var(--pill-away) 40%, transparent);
 }
-.location-pill.checking { color: #aaa; text-shadow: none; }
+.location-pill.checking { color: rgb(170, 170, 170); text-shadow: none; }
 
 .location-dot {
   width: 8px;
@@ -656,6 +719,8 @@ body.edit-mode:not(.touch) .group-header:active { cursor: grabbing; }
   user-select: none;
 }
 .gear-item:hover { background: rgba(var(--glow), 0.12); color: var(--crt-text-bright); }
+.gear-value { color: var(--crt-text-medium); }
+.gear-item:hover .gear-value { color: inherit; }
 
 .toggle {
   width: 34px;
@@ -765,7 +830,7 @@ body.touch .menu-item.danger:active { color: var(--status-down); }
 }
 .import-track {
   height: 8px;
-  background: rgba(0, 0, 0, 0.4);
+  background: var(--well);
   border: 1px solid rgba(var(--glow), 0.25);
   overflow: hidden;
 }
@@ -841,7 +906,7 @@ body.touch .menu-item.danger:active { color: var(--status-down); }
   font-family: inherit;
   font-size: 13px;
   color: var(--crt-text-bright);
-  background: rgba(0, 0, 0, 0.35);
+  background: var(--well);
   border: 1px solid rgba(var(--glow), 0.25);
 }
 .modal select { cursor: pointer; }
@@ -889,7 +954,7 @@ body.touch .menu-item.danger:active { color: var(--status-down); }
   margin: 0;
   position: relative;
   cursor: pointer;
-  background: rgba(0, 0, 0, 0.35);
+  background: var(--well);
   border: 1px solid rgba(var(--glow), 0.35);
 }
 .check-row input[type="checkbox"]:checked {
@@ -985,7 +1050,7 @@ body.touch .check-row:active input[type="checkbox"]:not(:checked) {
 .svg-variant small { font-size: 9px; letter-spacing: 0.5px; text-transform: uppercase; }
 
 .hint { font-size: 11px; color: var(--crt-text-medium); margin-top: 4px; line-height: 1.5; letter-spacing: 0.5px; }
-.hint code { background: rgba(0, 0, 0, 0.3); padding: 1px 4px; }
+.hint code { background: var(--well-code); padding: 1px 4px; }
 .hint .err { color: var(--status-down); }
 .hint a { color: var(--crt-text-bright); text-decoration: underline; }
 .hint a:hover { color: var(--accent); }
@@ -1051,7 +1116,7 @@ body.touch .check-row:active input[type="checkbox"]:not(:checked) {
 }
 .help-section p:last-child { margin-bottom: 0; }
 .help-section b { color: var(--crt-text-bright); font-weight: 700; }
-.help-section code { background: rgba(0, 0, 0, 0.3); padding: 1px 4px; }
+.help-section code { background: var(--well-code); padding: 1px 4px; }
 .help-section a { color: var(--crt-text-bright); text-decoration: underline; }
 .help-section a:hover { color: var(--accent); }
 .help-about {

@@ -7,6 +7,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.5.0] - 2026-09-26
+
+### Added
+
+- **Paper colour theme** - soft black on a warm white, with the same scanlines, knockout
+  titles and shadows as the green theme. Its dark mode is a true inversion: soft-black page,
+  paper-white group headers. Pick it via gear -> **Theme** (cycles Phosphor / Paper); the
+  sun/moon toggle still switches light and dark within the chosen theme. Stored per device,
+  like dark mode (not synced).
+
+### Changed
+
+- **Bolder check / cross marks** in colour-blind friendly mode - the thin glyphs were hard to
+  make out at 14px.
+
 ## [1.4.0] - 2026-09-25
 
 ### Added
@@ -251,7 +266,8 @@ Initial public release. Everything below describes the app as it ships at 1.0.0.
 - Icon strings are escaped before interpolation into the `url("...")` CSS mask,
   so a crafted `data:` icon can't break out of the `--icon` custom property.
 
-[Unreleased]: https://github.com/BrainInBlack/CRTL/compare/v1.4.0...HEAD
+[Unreleased]: https://github.com/BrainInBlack/CRTL/compare/v1.5.0...HEAD
+[1.5.0]: https://github.com/BrainInBlack/CRTL/compare/v1.4.0...v1.5.0
 [1.4.0]: https://github.com/BrainInBlack/CRTL/compare/v1.3.2...v1.4.0
 [1.3.2]: https://github.com/BrainInBlack/CRTL/compare/v1.3.1...v1.3.2
 [1.3.1]: https://github.com/BrainInBlack/CRTL/compare/v1.3.0...v1.3.1

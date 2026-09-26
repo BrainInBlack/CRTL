@@ -62,8 +62,14 @@ Shared data-model types live in `src/types.ts`; state in module-scope variables 
 
 `index.html` holds only the static chrome (location pill, gear, theme toggle,
 help button, and an empty `#container`) plus an inline head script that applies
-the stored dark-theme class before first paint to avoid a light flash. Everything
-else is built by JS.
+the stored `dark` and colour-theme classes (e.g. `paper`) to `<html>` before
+first paint to avoid a flash. Everything else is built by JS.
+
+Themes are orthogonal to dark mode: each colour theme is a `:root.<name>` and a
+`:root.<name>.dark` block of CSS variables in `styles.css`; Phosphor is the
+class-less default. `main.ts` owns the gear-menu `PALETTES` cycle. Both choices
+live in their own device-local keys (`crtl-theme`, `crtl-palette`), never in
+`CONFIG`, so they do not sync.
 
 ### Modules
 
@@ -86,7 +92,7 @@ else is built by JS.
 | `sync.ts` | Encrypted GitHub-gist sync (see below). |
 | `backup.ts` | Passphrase-encrypted config export/import to a local file (see below). |
 | `globals.d.ts` | Ambient `HTMLElement` augmentation for the two ad-hoc element props (`_onClose`, `_sizeAnim`). |
-| `styles.css` | The whole theme, with the CRT palette exposed as CSS variables in `:root`. |
+| `styles.css` | All styling; each colour theme (light + dark) is a block of CSS variables on `:root`. |
 
 ### State flow
 
