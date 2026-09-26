@@ -64,6 +64,22 @@ to regenerate `src/icons.bundled.js`, then rebuild. Unlike the build artifact,
 `src/icons.bundled.js` **is** committed - CI fails if it doesn't match a fresh
 `gen-icons` run.
 
+## Screenshots
+
+The README images (`docs/theme-phosphor.png`, `docs/theme-paper.png`) and the
+link-preview card (`docs/social-preview.png`) are generated, not hand-made. With
+`npm run dev` running:
+
+```sh
+npm run screenshots  # macOS only - WebKit + Core Graphics via swift, no installs
+```
+
+`scripts/screenshots.swift` renders the app in each theme, light and dark, from a
+fresh first-run config with every health dot up, and joins each pair along a
+diagonal (light left, dark right). The social card is `scripts/social-preview.html`
+with a split group card per theme dropped in - edit that file for layout or copy
+changes. Regenerate after visible UI changes and commit the PNGs.
+
 ## Tests & quality bar
 
 ```sh

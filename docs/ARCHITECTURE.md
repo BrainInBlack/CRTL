@@ -24,6 +24,7 @@ npm run build      # tsc --noEmit, then inline everything -> dist/CRTL.html
 npm run build:web  # same, the hosted web build -> dist-web/index.html
 npm run build:all  # both the local and web builds
 npm run gen-icons  # rebuild src/icons.bundled.js from src/icon-list.js
+npm run screenshots # macOS: regenerate docs/theme-*.png + social-preview.png (dev server running)
 ```
 
 CRTL builds **two targets from one source**, selected by the `BUILD_TARGET`
