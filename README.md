@@ -37,13 +37,16 @@ dependencies and works fully offline. Open it in a browser and you're done.
 
 No tracking, no analytics, no telemetry. On a normal load the only network
 calls are the Home/Away and health probes you configure - fonts and curated
-icons are bundled, so nothing is fetched from a CDN. Two **opt-in** features do
+icons are bundled, so nothing is fetched from a CDN. Three **opt-in** features do
 reach the network, and the UI says so:
 
 - **Brand icons** (`svg:...`) and any non-curated Bootstrap icon are fetched once
   from a public CDN (api.iconify.design / unpkg) when you save the entry, then
   embedded into your config.
 - **Encrypted gist sync** talks to `api.github.com` (AES-encrypted payload).
+- **Update check** (offline version only) asks `api.github.com` for the latest
+  release - when you press **Check now** in Help, or once a day if you turn on
+  **Check on startup** there.
 
 ## Themes
 

@@ -690,6 +690,13 @@ body.edit-mode:not(.touch) .group-header:active { cursor: grabbing; }
 .a11y  { left: 60px; font-size: 20px; }
 .gear:hover, .help:hover, .theme:hover, .a11y:hover { opacity: 1; }
 .gear.sync-error { color: var(--status-down); opacity: 1; } /* sync failing */
+/* newer release found (update.ts): a small accent dot on the gear */
+.gear.update-available { opacity: 1; }
+.gear.update-available::after {
+  content: ''; position: absolute; top: 2px; right: 2px;
+  width: 7px; height: 7px; border-radius: 50%;
+  background: var(--accent); box-shadow: 0 0 0 1.5px currentColor; /* ring reads on any theme */
+}
 
 .gear-menu {
   position: fixed;
@@ -721,6 +728,8 @@ body.edit-mode:not(.touch) .group-header:active { cursor: grabbing; }
 .gear-item:hover { background: rgba(var(--glow), 0.12); color: var(--crt-text-bright); }
 .gear-value { color: var(--crt-text-medium); }
 .gear-item:hover .gear-value { color: inherit; }
+a.gear-item { text-decoration: none; }
+#update-available { color: var(--crt-text-bright); }
 
 .toggle {
   width: 34px;
@@ -742,6 +751,9 @@ body.edit-mode:not(.touch) .group-header:active { cursor: grabbing; }
 }
 .gear-item.on .toggle { background: var(--accent); }
 .gear-item.on .toggle::after { transform: translateX(16px); }
+/* Paper's accent (the on-track) is close to its --crt-text-dim (identical in
+   dark), so the knob would vanish - draw it in the block colour instead. */
+:root.paper .gear-item.on .toggle::after { background: var(--crt-dark); }
 
 /* ---------- Context menu (touch row actions, see menu.ts) ---------- */
 .menu-backdrop {
@@ -1124,6 +1136,10 @@ body.touch .check-row:active input[type="checkbox"]:not(:checked) {
   font-size: 11px; letter-spacing: 0.5px; text-align: right; color: var(--crt-text-dim);
 }
 .help-about span { opacity: 0.7; }
+.update-row { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin: 8px 0; }
+.update-status { font-size: 12px; color: var(--crt-text-dim); }
+.update-status a { color: var(--crt-text-bright); text-decoration: underline; }
+.update-status a:hover { color: var(--accent); }
 
 /* =====================================================================
    TOUCH

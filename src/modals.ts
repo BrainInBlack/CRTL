@@ -13,6 +13,7 @@ import { startDrag, resolveY } from './dnd';
 import { isTouch, getTouchMode, setTouchMode, type TouchMode } from './touch';
 import { errMsg, safeUrl } from './util';
 import { APP_VERSION, IS_WEB } from './build';
+import { UPDATES_SUPPORTED, checkForUpdate, getAutoCheck, setAutoCheck } from './update';
 import type { Link } from './types';
 
 const REPO_URL = 'https://github.com/BrainInBlack/CRTL';
@@ -561,6 +562,50 @@ export function openA11yModal(): void {
 
 /* ---- help ---- */
 
+// Local build only: the downloaded file never updates itself, so Help offers a
+// manual check plus the opt-in startup check (see update.ts). Built with DOM
+// calls - the status line carries text from a network error.
+function buildUpdateSection(): HTMLElement {
+  const sec = document.createElement('div'); sec.className = 'help-section';
+  const h = document.createElement('h4'); h.textContent = 'Updates';
+  const p = document.createElement('p');
+  p.textContent = 'This file does not update itself. Checking asks GitHub (api.github.com) for the latest release.';
+
+  const row = document.createElement('div'); row.className = 'update-row';
+  const btn = document.createElement('button'); btn.className = 'btn'; btn.textContent = 'Check now';
+  const status = document.createElement('span'); status.className = 'update-status';
+  row.append(btn, status);
+
+  btn.addEventListener('click', async () => {
+    btn.disabled = true; status.textContent = 'Checking...';
+    try {
+      const rel = await checkForUpdate();
+      status.textContent = '';
+      if (rel) {
+        const a = document.createElement('a');
+        a.href = rel.url; a.target = '_blank'; a.rel = 'noopener noreferrer';
+        a.textContent = `Download v${rel.version}`;
+        status.append('New version available - ', a);
+      } else {
+        status.textContent = 'You have the latest version.';
+      }
+    } catch (err) {
+      status.textContent = 'Check failed: ' + errMsg(err);
+    } finally {
+      btn.disabled = false;
+    }
+  });
+
+  const auto = document.createElement('label'); auto.className = 'check-row';
+  const autoInput = document.createElement('input'); autoInput.type = 'checkbox'; autoInput.checked = getAutoCheck();
+  const autoText = document.createElement('span'); autoText.textContent = 'Check on startup (at most once a day, this device only)';
+  auto.append(autoInput, autoText);
+  autoInput.addEventListener('change', () => setAutoCheck(autoInput.checked));
+
+  sec.append(h, p, row, auto);
+  return sec;
+}
+
 export function openHelpModal(): void {
   const { body } = buildModal('Help', { dismissOnBackdrop: true }); // read-only, nothing to lose
 
@@ -612,6 +657,7 @@ export function openHelpModal(): void {
     </div>
     <div class="help-about">CRTL v${APP_VERSION} <span>(${IS_WEB ? 'web' : 'local'} build)</span></div>
   `;
+  if (UPDATES_SUPPORTED) body.querySelector('.help-about')!.before(buildUpdateSection());
   // No Close button: help is the one dialog you can dismiss by clicking beside
   // it (or with Escape), so the footer would be a bar with one redundant
   // control. An empty .modal-footer hides itself.
