@@ -86,6 +86,36 @@ darkToggle.addEventListener('click', () => {
   applyTheme(dark);
 });
 
+/* ---- colour theme ----
+   Device-local like dark mode, and orthogonal to it: each palette has a light
+   and a dark variant. Phosphor (green / amber) is the default and has no class;
+   the others add their name to <html> (pre-applied by the head script). The gear
+   item cycles through them and stays open so the change is visible. */
+const PALETTE_KEY = 'crtl-palette';
+const PALETTES    = [['phosphor', 'Phosphor'], ['paper', 'Paper']] as const;
+type Palette      = typeof PALETTES[number][0];
+const paletteName = document.getElementById('palette-name')!;
+
+function currentPalette(): Palette {
+  const root = document.documentElement;
+  return PALETTES.find(([id]) => root.classList.contains(id))?.[0] ?? 'phosphor';
+}
+
+function applyPalette(p: Palette): void {
+  for (const [id, label] of PALETTES) {
+    if (id !== 'phosphor') document.documentElement.classList.toggle(id, id === p);
+    if (id === p) paletteName.textContent = label;
+  }
+}
+applyPalette(currentPalette());
+
+document.getElementById('cycle-palette')!.addEventListener('click', () => {
+  const i = PALETTES.findIndex(([id]) => id === currentPalette());
+  const next = PALETTES[(i + 1) % PALETTES.length][0];
+  try { localStorage.setItem(PALETTE_KEY, next); } catch {}
+  applyPalette(next);
+});
+
 // Tint the gear when sync is failing (errors are otherwise easy to miss).
 function refreshSyncIndicator(): void {
   const err = getSync() ? getSyncError() : null;

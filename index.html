@@ -11,7 +11,7 @@
 	<!-- Social / link-unfurl metadata. og:image is served from GitHub raw so it
 	     resolves regardless of how the hosted build bundles assets. -->
 	<meta name="description" content="Phosphor / CRT-styled homelab dashboard. One self-contained HTML file - fonts and icons baked in, 100% local, works fully offline.">
-	<meta name="theme-color" content="#16110b">
+	<meta name="theme-color" content="rgb(22, 17, 11)">
 	<meta property="og:type" content="website">
 	<meta property="og:site_name" content="CRTL">
 	<meta property="og:title" content="CRTL - phosphor / CRT homelab dashboard">
@@ -28,14 +28,15 @@
 	<meta name="twitter:image" content="https://raw.githubusercontent.com/BrainInBlack/CRTL/main/docs/social-preview.png">
 	<meta name="twitter:image:alt" content="CRTL - a phosphor / CRT-styled homelab dashboard, showing the wordmark and a sample service card.">
 
-	<!-- Apply the stored theme before first paint (no light flash). -->
-	<script>try { var t = localStorage.getItem('crtl-theme'); if (t === null) t = localStorage.getItem('startpage-theme'); if (t === 'dark') document.documentElement.classList.add('dark'); } catch (e) {}</script>
+	<!-- Apply the stored dark mode + colour theme before first paint (no flash). -->
+	<script>try { var t = localStorage.getItem('crtl-theme'); if (t === null) t = localStorage.getItem('startpage-theme'); if (t === 'dark') document.documentElement.classList.add('dark'); if (localStorage.getItem('crtl-palette') === 'paper') document.documentElement.classList.add('paper'); } catch (e) {}</script>
 	<!-- Critical background so the pre-stylesheet paint isn't white. Values
 	     mirror --crt-bg in src/styles.css. -->
-	<style>html { background: #9cb89c; } html.dark { background: #16110b; }</style>
+	<style>html { background: rgb(156, 184, 156); } html.dark { background: rgb(22, 17, 11); }
+	       html.paper { background: rgb(230, 228, 220); } html.paper.dark { background: rgb(29, 28, 27); }</style>
 	<!-- Favicon: an amber-phosphor CRT screen (also a Ctrl keycap) with a `>_`
 	     terminal prompt. Colours mirror the dark-theme accent in src/styles.css. -->
-	<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'><rect x='.5' y='.5' width='15' height='15' rx='3.5' fill='%2316110b' stroke='%23e8ab55'/><path d='M3.4 4.8 6.4 8 3.4 11.2' fill='none' stroke='%23e8ab55' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'/><rect x='7.6' y='9.7' width='5' height='1.8' rx='.4' fill='%23e8ab55'/></svg>">
+	<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'><rect x='.5' y='.5' width='15' height='15' rx='3.5' fill='rgb(22,17,11)' stroke='rgb(232,171,85)'/><path d='M3.4 4.8 6.4 8 3.4 11.2' fill='none' stroke='rgb(232,171,85)' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'/><rect x='7.6' y='9.7' width='5' height='1.8' rx='.4' fill='rgb(232,171,85)'/></svg>">
 </head>
 <body>
 	<div class="location-pill checking" id="location-pill" title="Detecting location...">
@@ -48,6 +49,10 @@
 		<div class="gear-item" id="toggle-edit">
 			<span>Edit mode</span>
 			<span class="toggle"></span>
+		</div>
+		<div class="gear-item" id="cycle-palette" title="Switch colour theme">
+			<span>Theme</span>
+			<span class="gear-value" id="palette-name">Phosphor</span>
 		</div>
 		<div class="gear-item" id="open-options">
 			<span>Global options</span>
