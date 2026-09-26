@@ -41,6 +41,7 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "gen-icons": "node scripts/gen-icons.mjs",
+    "screenshots": "swift scripts/screenshots.swift",
     "deploy": "bash scripts/deploy.sh"
   },
   "devDependencies": {

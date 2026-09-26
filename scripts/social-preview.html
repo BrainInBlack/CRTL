@@ -1,0 +1,107 @@
+<!doctype html>
+<!-- Template for docs/social-preview.png (1280x640), rendered by
+     scripts/screenshots.swift. The two theme tiles on the right are real group
+     cards cut from the app screenshots and injected via setTiles(). Open it in a
+     browser to tweak the layout; without the script the tiles stay empty. -->
+<html>
+<head>
+<meta charset="utf-8">
+<style>
+  @font-face { font-family: 'Orbitron'; font-weight: 400; src: url('../node_modules/@fontsource/orbitron/files/orbitron-latin-400-normal.woff2') format('woff2'); }
+  @font-face { font-family: 'Orbitron'; font-weight: 700; src: url('../node_modules/@fontsource/orbitron/files/orbitron-latin-700-normal.woff2') format('woff2'); }
+  @font-face { font-family: 'Orbitron'; font-weight: 800; src: url('../node_modules/@fontsource/orbitron/files/orbitron-latin-800-normal.woff2') format('woff2'); }
+
+  :root {
+    --bg:      rgb(18, 14, 9);
+    --panel:   rgb(24, 19, 12);
+    --amber-a: rgb(255, 220, 168);
+    --amber-b: rgb(216, 168, 96);
+    --amber:   rgb(232, 171, 85);
+    --dim:     rgb(168, 128, 72);
+    --line:    rgba(216, 162, 78, 0.3);
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body { width: 1280px; height: 640px; overflow: hidden; background: var(--bg); }
+  body { font-family: 'Orbitron', monospace; color: var(--amber); }
+
+  .frame {
+    position: absolute; inset: 28px;
+    border: 1.5px solid var(--line);
+    border-radius: 28px;
+    background:
+      repeating-linear-gradient(0deg, transparent 0 2px, rgba(216, 162, 78, 0.035) 2px 4px),
+      radial-gradient(ellipse at 30% 45%, rgb(34, 26, 15) 0%, var(--panel) 55%, var(--bg) 100%);
+    overflow: hidden;
+  }
+
+  .left { position: absolute; left: 72px; top: 0; bottom: 0; width: 640px;
+          display: flex; flex-direction: column; justify-content: center; }
+
+  .kicker { display: flex; align-items: center; gap: 18px; margin-bottom: 26px; }
+  .prompt {
+    width: 52px; height: 34px; border: 1.5px solid var(--dim); border-radius: 6px;
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 700; font-size: 17px; color: var(--amber);
+  }
+  .kicker span { font-size: 19px; letter-spacing: 6px; color: var(--dim); }
+
+  .wordmark {
+    font-weight: 800; font-size: 168px; line-height: 0.9; letter-spacing: 6px;
+    color: transparent;
+    background-image: linear-gradient(180deg, var(--amber-a) 0%, var(--amber-b) 100%);
+    -webkit-background-clip: text; background-clip: text;
+    filter: drop-shadow(0 0 18px rgba(232, 171, 85, 0.45));
+  }
+  .tagline { margin-top: 34px; font-size: 29px; color: var(--amber); letter-spacing: 0.5px; }
+
+  .chips { display: flex; gap: 12px; margin-top: 34px; }
+  .chip {
+    padding: 11px 22px; border: 1.5px solid var(--line); border-radius: 999px;
+    font-size: 15px; letter-spacing: 2px; color: var(--amber-b);
+  }
+  .url { margin-top: 30px; font-size: 18px; letter-spacing: 1px; color: var(--dim); }
+
+  .right { position: absolute; right: 72px; top: 0; bottom: 0;
+           display: flex; flex-direction: column; justify-content: center; gap: 22px; }
+  .tile { display: flex; flex-direction: column; gap: 9px; }
+  .tile span { font-size: 12px; letter-spacing: 4px; color: var(--dim); }
+  .tile span b { color: var(--amber-b); font-weight: 700; }
+  .tile img {
+    display: block; width: 330px; height: auto;
+    border-radius: 12px; border: 1.5px solid var(--line);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+  }
+</style>
+</head>
+<body>
+  <div class="frame">
+    <div class="left">
+      <div class="kicker"><div class="prompt">&gt;_</div><span>HOMELAB DASHBOARD</span></div>
+      <div class="wordmark">CRTL</div>
+      <div class="tagline">Phosphor / CRT homelab dashboard</div>
+      <div class="chips">
+        <div class="chip">SINGLE-FILE HTML</div>
+        <div class="chip">100% LOCAL</div>
+        <div class="chip">OFFLINE</div>
+      </div>
+      <div class="url">github.com/BrainInBlack/CRTL</div>
+    </div>
+    <div class="right">
+      <div class="tile"><span><b>PHOSPHOR</b> &middot; LIGHT / DARK</span><img id="tile-phosphor" alt=""></div>
+      <div class="tile"><span><b>PAPER</b> &middot; LIGHT / DARK</span><img id="tile-paper" alt=""></div>
+    </div>
+  </div>
+<script>
+  // Called by scripts/screenshots.swift with PNG data URLs; resolves once both
+  // images and the fonts are ready to paint.
+  window.setTiles = (phosphor, paper) => {
+    const load = (id, src) => new Promise((ok) => {
+      const img = document.getElementById(id);
+      img.onload = ok; img.src = src;
+    });
+    return Promise.all([load('tile-phosphor', phosphor), load('tile-paper', paper), document.fonts.ready])
+      .then(() => true);
+  };
+</script>
+</body>
+</html>
