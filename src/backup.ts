@@ -5,7 +5,8 @@
    payload: config without the icon cache (icons re-embed from their bi:/svg:
    ids on import) and never any sync credentials. */
 
-import { encryptStr, decryptStr, b64encode, b64decode, stripIconCache } from './sync';
+import { encryptStr, decryptStr, b64encode, b64decode } from './crypto';
+import { stripIconCache } from './util';
 import type { Config } from './types';
 
 const FORMAT = 'crtl-backup';
@@ -32,7 +33,7 @@ interface Envelope {
    served over plain http:// does not (same limitation as gist sync). */
 export const backupCryptoAvailable = (): boolean => !!globalThis.crypto?.subtle;
 
-/** Passphrase -> base64 raw AES key, so encryptStr/decryptStr (sync.ts) can be
+/** Passphrase -> base64 raw AES key, so encryptStr/decryptStr (crypto.ts) can be
    reused as-is. Exported for tests. */
 export async function deriveKeyB64(passphrase: string, saltB64: string, iterations: number): Promise<string> {
   const material = await crypto.subtle.importKey(

@@ -49,7 +49,7 @@ everything. The active build and version appear in the Help modal.
 
 Tests run on **vitest** with the **happy-dom** environment (`vitest.config.ts`);
 test files are `src/**/*.test.ts`, focused on the pure / pure-ish modules
-(`probes`, `sync` crypto/blob, `icons` key resolution, `state` config load). DOM-
+(`probes`, `crypto`, `sync` blob, `icons` key resolution, `state` config load). DOM-
 and pointer-heavy code (render, dnd, modals, edit) is verified by hand. There's no
 linter beyond `tsc` - `tsconfig.json` runs `strict`, `noUnusedLocals`, and
 `noUnusedParameters`, so a clean `npm run typecheck` plus passing `npm test` is the
@@ -91,6 +91,7 @@ live in their own device-local keys (`crtl-theme`, `crtl-palette`), never in
 | `touch.ts` | Is the primary pointer a finger? `(pointer: coarse)` plus a device-local manual override, mirrored onto `body.touch` so CSS and JS switch on one source (see Touch mode below). |
 | `menu.ts` | The anchored context menu - touch's stand-in for the hover-revealed row actions. |
 | `sync.ts` | Encrypted GitHub-gist sync (see below). |
+| `crypto.ts` | AES-GCM primitives (`encryptStr`/`decryptStr`, key generation, base64) shared by `sync.ts` and `backup.ts`. |
 | `backup.ts` | Passphrase-encrypted config export/import to a local file (see below). |
 | `update.ts` | Local build only: opt-in check of GitHub's latest release against `APP_VERSION`; a newer one fires `update-available`, which `main.ts` turns into a gear item linking its `CRTL.html`. |
 | `globals.d.ts` | Ambient `HTMLElement` augmentation for the two ad-hoc element props (`_onClose`, `_sizeAnim`). |
@@ -226,10 +227,11 @@ write, and clock skew decides ties. Sync failures tint the gear icon (a
 passphrase-encrypted file and imports it elsewhere, with no account or network.
 The file is a versioned envelope - `{ format, version, kdf, payload }` - where
 `payload` is the same `base64(iv || AES-GCM ct)` format `encryptStr`/`decryptStr`
-produce (they're reused as-is). The key is derived from the passphrase with
-PBKDF2-SHA256 and a per-export random salt; the iteration count is stored in the
-envelope so it can be raised later without breaking old files, and bounded on
-import so a hostile file can't stall the tab inside `deriveBits`.
+(`crypto.ts`) produce for the gist (they're reused as-is). The key is derived
+from the passphrase with PBKDF2-SHA256 and a per-export random salt; the
+iteration count is stored in the envelope so it can be raised later without
+breaking old files, and bounded on import so a hostile file can't stall the tab
+inside `deriveBits`.
 
 The plaintext payload deliberately mirrors the gist payload: config **without
 the icon cache** (icons re-embed from their ids after import, exactly like a

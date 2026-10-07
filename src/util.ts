@@ -1,5 +1,7 @@
 /* Small shared helpers. */
 
+import type { Config } from './types';
+
 /** Human-readable message from an unknown thrown value. Prefers a truthy
    `.message` (covers Error and DOMException without the "Name: " prefix that
    String(domException) adds), falling back to String(). */
@@ -20,3 +22,9 @@ export function safeUrl(url: string): string {
     return '';
   }
 }
+
+/** A config payload without the local icon cache - the portable shape shared by
+   gist sync and the encrypted backup file. The cache bloats the gist / file and
+   pollutes revision history; icons rebuild locally from their `bi:`/`svg:` ids
+   after import. */
+export const stripIconCache = (c: Config): Omit<Config, 'iconCache'> => { const { iconCache, ...rest } = c; return rest; };

@@ -5,8 +5,9 @@ import { embedIcon, iconEl, gripSpan, pruneIconCache, findBrandSets } from './ic
 import { BI_ICONS } from './icon-list';
 import {
   getSync, setSync, exportSyncBlob, importSyncBlob,
-  generateKeyB64, createGist, importFromGist, getSyncError, applyAndEmbed
+  createGist, importFromGist, getSyncError, applyAndEmbed
 } from './sync';
+import { generateKeyB64 } from './crypto';
 import { exportBackup, importBackup, downloadBackup, backupCryptoAvailable, MAX_BACKUP_BYTES } from './backup';
 import { recheckLocation } from './location';
 import { startDrag, resolveY } from './dnd';
