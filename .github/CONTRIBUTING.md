@@ -106,8 +106,9 @@ a page served over `https://` reads everything as down (mixed-content blocking).
 
 Single entry point at `src/main.ts`. Shared types live in `src/types.ts`; state in
 `src/state.ts`; rendering in `src/render.ts`; the probe/location logic in
-`src/probes.ts` and `src/location.ts`; edit UI and dialogs in `src/edit.ts`,
-`src/modals.ts`, and `src/dnd.ts`; encrypted gist sync in `src/sync.ts`. The two
+`src/probes.ts` and `src/location.ts`; edit UI in `src/edit.ts` and `src/dnd.ts`;
+dialogs in `src/modals.ts` (scaffold, help), `src/entry-modal.ts`, and
+`src/options-modal.ts`; encrypted gist sync in `src/sync.ts`. The two
 icon data files (`src/icon-list.js`, generated `src/icons.bundled.js`) stay `.js`
 so the Node `gen-icons` script can import them. The detailed map lives in
 [docs/ARCHITECTURE.md](../docs/ARCHITECTURE.md) - start there before changing

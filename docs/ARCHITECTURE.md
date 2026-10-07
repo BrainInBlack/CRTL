@@ -87,7 +87,10 @@ live in their own device-local keys (`crtl-theme`, `crtl-palette`), never in
 | `icons.ts` | Icon resolution and the fetch/embed pipeline (bundled -> cache -> CDN). |
 | `icons.bundled.js` | Generated (stays `.js`). The curated Bootstrap Icons set as `{ 'bi:<name>': '<data-uri>' }`. Rebuilt by `scripts/gen-icons.mjs`. |
 | `icon-list.js` | The curated icon name lists that feed `gen-icons` (stays `.js` so the Node script can import it). |
-| `edit.ts` / `modals.ts` / `dnd.ts` | Edit mode: inline group/entry editing, dialogs (entry editor, Global options, help), and drag-and-drop reordering. |
+| `edit.ts` / `dnd.ts` | Edit mode: inline group/entry editing and drag-and-drop reordering. |
+| `modals.ts` | The shared modal scaffold (`buildModal`, `closeModal`, `fieldText`) plus the Accessibility and Help dialogs. |
+| `entry-modal.ts` | The entry editor: name, icon picker and brand-set chooser, health check, draggable link list. |
+| `options-modal.ts` | Global options: home probes, encrypted gist sync setup, encrypted backup export/import. |
 | `touch.ts` | Is the primary pointer a finger? `(pointer: coarse)` plus a device-local manual override, mirrored onto `body.touch` so CSS and JS switch on one source (see Touch mode below). |
 | `menu.ts` | The anchored context menu - touch's stand-in for the hover-revealed row actions. |
 | `sync.ts` | Encrypted GitHub-gist sync (see below). |

@@ -3,7 +3,7 @@
 import { CONFIG, editMode, openWrap, setOpenWrap } from './state';
 import { orderLinks, isInternal, probeService, isProbeable } from './probes';
 import { iconMarkup, iconSpan, gripSpan } from './icons';
-import { openEntryModal } from './modals';
+import { openEntryModal } from './entry-modal';
 import { addEntryTo, deleteEntry, addNewGroup, wireGroupEditing } from './edit';
 import { wireGroupDnD } from './dnd';
 import { openContextMenu } from './menu';
@@ -118,6 +118,12 @@ function buildEntry(entry: Entry, away: boolean, gi: number, ei: number): HTMLEl
       a.textContent = link.label;
       a.addEventListener('click', () => closeSlideout());
       overlay.appendChild(a);
+    });
+    // Keyboard: the links stay in the tab order, so slide the strip in while
+    // focus is inside it and back out once focus leaves the strip.
+    overlay.addEventListener('focusin', () => openSlideout(wrap));
+    overlay.addEventListener('focusout', (e) => {
+      if (!overlay.contains(e.relatedTarget as Node | null) && openWrap === wrap) closeSlideout();
     });
     wrap.appendChild(overlay);
   }

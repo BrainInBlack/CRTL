@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- **Keyboard focus no longer leaves link strips half-open** - tabbing through the page
+  (Option+Tab in Safari) scrolled hidden link strips sideways into view and left them stuck
+  half-open across several entries. A strip now slides fully open while focus is on one of its
+  links and closes again when focus moves on.
+
 ## [1.6.0] - 2026-09-26
 
 ### Added

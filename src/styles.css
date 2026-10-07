@@ -225,7 +225,11 @@ body {
 .entry-wrap {
   margin: 5px 0;
   position: relative;
+  /* clip, not hidden: a hidden box is still a scroll container, so tabbing onto
+     an off-screen overlay link scrolled the row sideways and left a half-open
+     strip behind. clip crops identically but can't be scrolled. */
   overflow: hidden;
+  overflow: clip;
 }
 
 .entry {

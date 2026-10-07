@@ -3,7 +3,7 @@
 import { CONFIG, persist, flushGist, rerender, isAway, setEditModeFlag, importing } from './state';
 import { render, closeSlideout } from './render';
 import { flipElement, wireEntryDnD } from './dnd';
-import { openEntryModal } from './modals';
+import { openEntryModal } from './entry-modal';
 import { pruneIconCache, iconSpan, gripSpan, spanIconSpan } from './icons';
 import { isTouch } from './touch';
 import type { GroupSpan } from './types';
