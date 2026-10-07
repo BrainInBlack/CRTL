@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.6.1] - 2026-10-07
+
+### Fixed
+
+- **Keyboard focus no longer leaves link strips half-open** - tabbing through the page
+  (Option+Tab in Safari) scrolled hidden link strips sideways into view and left them stuck
+  half-open across several entries. A strip now slides fully open while focus is on one of its
+  links and closes again when focus moves on.
+
 ## [1.6.0] - 2026-09-26
 
 ### Added
@@ -281,7 +290,8 @@ Initial public release. Everything below describes the app as it ships at 1.0.0.
 - Icon strings are escaped before interpolation into the `url("...")` CSS mask,
   so a crafted `data:` icon can't break out of the `--icon` custom property.
 
-[Unreleased]: https://github.com/BrainInBlack/CRTL/compare/v1.6.0...HEAD
+[Unreleased]: https://github.com/BrainInBlack/CRTL/compare/v1.6.1...HEAD
+[1.6.1]: https://github.com/BrainInBlack/CRTL/compare/v1.6.0...v1.6.1
 [1.6.0]: https://github.com/BrainInBlack/CRTL/compare/v1.5.0...v1.6.0
 [1.5.0]: https://github.com/BrainInBlack/CRTL/compare/v1.4.0...v1.5.0
 [1.4.0]: https://github.com/BrainInBlack/CRTL/compare/v1.3.2...v1.4.0

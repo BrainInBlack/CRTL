@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { exportBackup, importBackup, deriveKeyB64, MAX_BACKUP_BYTES } from './backup';
-import { encryptStr, b64encode } from './sync';
+import { encryptStr, b64encode } from './crypto';
 import type { Config } from './types';
 
 const hasSubtle = typeof globalThis.crypto?.subtle?.encrypt === 'function';

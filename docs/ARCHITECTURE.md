@@ -49,7 +49,7 @@ everything. The active build and version appear in the Help modal.
 
 Tests run on **vitest** with the **happy-dom** environment (`vitest.config.ts`);
 test files are `src/**/*.test.ts`, focused on the pure / pure-ish modules
-(`probes`, `sync` crypto/blob, `icons` key resolution, `state` config load). DOM-
+(`probes`, `crypto`, `sync` blob, `icons` key resolution, `state` config load). DOM-
 and pointer-heavy code (render, dnd, modals, edit) is verified by hand. There's no
 linter beyond `tsc` - `tsconfig.json` runs `strict`, `noUnusedLocals`, and
 `noUnusedParameters`, so a clean `npm run typecheck` plus passing `npm test` is the
@@ -87,10 +87,14 @@ live in their own device-local keys (`crtl-theme`, `crtl-palette`), never in
 | `icons.ts` | Icon resolution and the fetch/embed pipeline (bundled -> cache -> CDN). |
 | `icons.bundled.js` | Generated (stays `.js`). The curated Bootstrap Icons set as `{ 'bi:<name>': '<data-uri>' }`. Rebuilt by `scripts/gen-icons.mjs`. |
 | `icon-list.js` | The curated icon name lists that feed `gen-icons` (stays `.js` so the Node script can import it). |
-| `edit.ts` / `modals.ts` / `dnd.ts` | Edit mode: inline group/entry editing, dialogs (entry editor, Global options, help), and drag-and-drop reordering. |
+| `edit.ts` / `dnd.ts` | Edit mode: inline group/entry editing and drag-and-drop reordering. |
+| `modals.ts` | The shared modal scaffold (`buildModal`, `closeModal`, `fieldText`) plus the Accessibility and Help dialogs. |
+| `entry-modal.ts` | The entry editor: name, icon picker and brand-set chooser, health check, draggable link list. |
+| `options-modal.ts` | Global options: home probes, encrypted gist sync setup, encrypted backup export/import. |
 | `touch.ts` | Is the primary pointer a finger? `(pointer: coarse)` plus a device-local manual override, mirrored onto `body.touch` so CSS and JS switch on one source (see Touch mode below). |
 | `menu.ts` | The anchored context menu - touch's stand-in for the hover-revealed row actions. |
 | `sync.ts` | Encrypted GitHub-gist sync (see below). |
+| `crypto.ts` | AES-GCM primitives (`encryptStr`/`decryptStr`, key generation, base64) shared by `sync.ts` and `backup.ts`. |
 | `backup.ts` | Passphrase-encrypted config export/import to a local file (see below). |
 | `update.ts` | Local build only: opt-in check of GitHub's latest release against `APP_VERSION`; a newer one fires `update-available`, which `main.ts` turns into a gear item linking its `CRTL.html`. |
 | `globals.d.ts` | Ambient `HTMLElement` augmentation for the two ad-hoc element props (`_onClose`, `_sizeAnim`). |
@@ -148,11 +152,17 @@ chrome pads itself out of the iPhone home indicator with
 
 ## Home / Away detection
 
-At startup and every 60 seconds (`SERVICE_REFRESH_MS` in `main.ts`), `probeHome()`
+At startup and every 30 seconds (`LOCATION_REFRESH_MS` in `main.ts`), `probeHome()`
 races the configured `homeProbes` with `no-cors` fetches: the first success means
 **Home**, all-failed means **Away**. Because the responses are opaque, a probe
 resolves `true` on *any* HTTP response and `false` only on a network-layer
 failure - enough to tell whether a host is reachable.
+
+The periodic checks run on separate timers (all in `main.ts`) so their network
+bursts don't overlap: Home/Away every 30s (`LOCATION_REFRESH_MS`), the service
+dots every 30s but staggered 5s later (`SERVICE_REFRESH_MS`,
+`SERVICE_OFFSET_MS`), and the gist re-pull on its own 60s clock
+(`SYNC_REFRESH_MS`).
 
 A URL is considered **internal** (for Away-mode reordering/dimming) if its host
 ends in `.home`/`.local` or falls in an RFC1918 range (`10.x`, `192.168.x`,
@@ -220,10 +230,11 @@ write, and clock skew decides ties. Sync failures tint the gear icon (a
 passphrase-encrypted file and imports it elsewhere, with no account or network.
 The file is a versioned envelope - `{ format, version, kdf, payload }` - where
 `payload` is the same `base64(iv || AES-GCM ct)` format `encryptStr`/`decryptStr`
-produce (they're reused as-is). The key is derived from the passphrase with
-PBKDF2-SHA256 and a per-export random salt; the iteration count is stored in the
-envelope so it can be raised later without breaking old files, and bounded on
-import so a hostile file can't stall the tab inside `deriveBits`.
+(`crypto.ts`) produce for the gist (they're reused as-is). The key is derived
+from the passphrase with PBKDF2-SHA256 and a per-export random salt; the
+iteration count is stored in the envelope so it can be raised later without
+breaking old files, and bounded on import so a hostile file can't stall the tab
+inside `deriveBits`.
 
 The plaintext payload deliberately mirrors the gist payload: config **without
 the icon cache** (icons re-embed from their ids after import, exactly like a

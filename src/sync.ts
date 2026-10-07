@@ -4,7 +4,8 @@
 
 import { CONFIG, applyConfig, setImporting, importing, editMode, rerender, saveLocal } from './state';
 import { embedAllIcons } from './icons';
-import { errMsg } from './util';
+import { errMsg, stripIconCache } from './util';
+import { encryptStr, decryptStr } from './crypto';
 import type { Config, SyncCreds } from './types';
 
 /** The three choices offered by the sync-conflict dialog. */
@@ -64,12 +65,6 @@ function setBase(v: number): void { if (v) localStorage.setItem(BASE_KEY, String
 // Local == gist right now -> record the common version as the new base.
 const markSynced = () => setBase(CONFIG.version);
 
-/** A config payload without the local icon cache - the portable shape shared by
-   gist sync and the encrypted backup file. The cache bloats the gist / file and
-   pollutes revision history; icons rebuild locally from their `bi:`/`svg:` ids
-   after import. */
-export const stripIconCache = (c: Config): Omit<Config, 'iconCache'> => { const { iconCache, ...rest } = c; return rest; };
-
 /** The gist payload: this machine's live config, minus the icon cache. */
 const gistPayload = (): Omit<Config, 'iconCache'> => stripIconCache(CONFIG);
 
@@ -102,39 +97,6 @@ export function reportSyncError(err: unknown): void {
   emitStatus();
 }
 function clearSyncError(): void { if (syncError !== null) { syncError = null; emitStatus(); } }
-
-/* ---- AES-GCM ---- */
-
-export const b64encode = (buf: ArrayBuffer | Uint8Array) => btoa(String.fromCharCode(...new Uint8Array(buf)));
-export const b64decode = (str: string) => Uint8Array.from(atob(str), c => c.charCodeAt(0));
-
-/** Fresh 256-bit key, base64 (raw) for storage. */
-export async function generateKeyB64(): Promise<string> {
-  const key = await crypto.subtle.generateKey({ name: 'AES-GCM', length: 256 }, true, ['encrypt', 'decrypt']);
-  return b64encode(await crypto.subtle.exportKey('raw', key));
-}
-
-const importKey = (keyB64: string) =>
-  crypto.subtle.importKey('raw', b64decode(keyB64), { name: 'AES-GCM' }, false, ['encrypt', 'decrypt']);
-
-/** Encrypt -> base64(iv || ciphertext). */
-export async function encryptStr(plaintext: string, keyB64: string): Promise<string> {
-  const key = await importKey(keyB64);
-  const iv = crypto.getRandomValues(new Uint8Array(12));
-  const ct = await crypto.subtle.encrypt({ name: 'AES-GCM', iv }, key, new TextEncoder().encode(plaintext));
-  const out = new Uint8Array(iv.length + ct.byteLength);
-  out.set(iv, 0);
-  out.set(new Uint8Array(ct), iv.length);
-  return b64encode(out);
-}
-
-/** Decrypt base64(iv || ciphertext) -> string. */
-export async function decryptStr(payload: string, keyB64: string): Promise<string> {
-  const key = await importKey(keyB64);
-  const bytes = b64decode(payload);
-  const pt = await crypto.subtle.decrypt({ name: 'AES-GCM', iv: bytes.slice(0, 12) }, key, bytes.slice(12));
-  return new TextDecoder().decode(pt);
-}
 
 /* ---- gist API ---- */
 
