@@ -148,11 +148,17 @@ chrome pads itself out of the iPhone home indicator with
 
 ## Home / Away detection
 
-At startup and every 60 seconds (`SERVICE_REFRESH_MS` in `main.ts`), `probeHome()`
+At startup and every 30 seconds (`LOCATION_REFRESH_MS` in `main.ts`), `probeHome()`
 races the configured `homeProbes` with `no-cors` fetches: the first success means
 **Home**, all-failed means **Away**. Because the responses are opaque, a probe
 resolves `true` on *any* HTTP response and `false` only on a network-layer
 failure - enough to tell whether a host is reachable.
+
+The periodic checks run on separate timers (all in `main.ts`) so their network
+bursts don't overlap: Home/Away every 30s (`LOCATION_REFRESH_MS`), the service
+dots every 30s but staggered 5s later (`SERVICE_REFRESH_MS`,
+`SERVICE_OFFSET_MS`), and the gist re-pull on its own 60s clock
+(`SYNC_REFRESH_MS`).
 
 A URL is considered **internal** (for Away-mode reordering/dimming) if its host
 ends in `.home`/`.local` or falls in an RFC1918 range (`10.x`, `192.168.x`,
