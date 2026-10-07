@@ -16,6 +16,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   half-open across several entries. A strip now slides fully open while focus is on one of its
   links and closes again when focus moves on.
 
+### Changed
+
+- **Updated the build and test tooling** - `vite` 8.3.1 -> 8.3.2 and `vitest` 5.0.2 -> 5.0.3.
+  Neither ships in CRTL; the built app is unchanged.
+
+### Security
+
+- **Cleared a dependency advisory** in a **development**-only package that runs while building
+  CRTL and is never part of the shipped page, so it was not exploitable against users:
+  - `source-map-js` (high) - [GHSA-68fv-2mgg-jv7q](https://github.com/advisories/GHSA-68fv-2mgg-jv7q):
+    a crafted indexed source map could block the event loop. Updated 1.2.1 -> 1.2.2.
+- `braces` (high, [GHSA-vfj7-8cjw-p6xm](https://github.com/advisories/GHSA-vfj7-8cjw-p6xm),
+  build-time only via `vite-plugin-singlefile`) has no patched release yet. CRTL only feeds it
+  its own build config, never untrusted patterns; it will be updated once a fix ships.
+
 ## [1.6.0] - 2026-09-26
 
 ### Added
