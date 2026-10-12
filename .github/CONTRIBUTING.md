@@ -11,7 +11,8 @@ see [README.md](../README.md). For the full architecture and conventions, see
 
 ## Prerequisites
 
-- [Node.js](https://nodejs.org/) 24 or newer (current LTS).
+- [Node.js](https://nodejs.org/) 26 or newer (the `engines` floor in `package.json`;
+  CI builds on 26).
 
 Node is only needed to **build or develop** CRTL - not to run a built copy.
 The output is a single self-contained `CRTL.html` that runs in any modern

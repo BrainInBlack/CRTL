@@ -32,9 +32,9 @@ environment variable (`local` by default, `web` for `npm run build:web`): the
 downloadable single file `dist/CRTL.html`, and the hosted `dist-web/index.html`.
 `vite.config.ts` injects two compile-time constants via `define` -
 `__APP_VERSION__` (from `package.json`) and `__BUILD_TARGET__` - surfaced through
-`src/build.ts` as `APP_VERSION` and `IS_WEB`. It wires up
-[`vite-plugin-singlefile`](https://github.com/richardtallent/vite-plugin-singlefile)
-to inline all assets; a post plugin renames the emitted `index.html` chunk to
+`src/build.ts` as `APP_VERSION` and `IS_WEB`. A small local `inlineAssets()`
+plugin inlines the bundled JS and CSS into the HTML (fonts and other assets are
+inlined as base64 by the build config); a post plugin renames the emitted `index.html` chunk to
 `CRTL.html` for the local build (the web build keeps `index.html`, which a static
 host serves by default). Both `dist/` and `dist-web/` are git-ignored build
 outputs; the shipped local artifact is attached to a GitHub release, not

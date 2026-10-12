@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Security
+
+- **Cleared the last dependency advisory** - `braces` (high,
+  [GHSA-vfj7-8cjw-p6xm](https://github.com/advisories/GHSA-vfj7-8cjw-p6xm)) still has no patched
+  release, so the build no longer uses `vite-plugin-singlefile`, the only package that pulled it
+  in. A few lines in the build config now do the same inlining. Build-time only; the built app
+  is byte-for-byte unchanged.
+
 ## [1.6.1] - 2026-10-07
 
 ### Fixed
